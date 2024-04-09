@@ -1,11 +1,10 @@
 import {
   createWindow,
   DwmWindow,
+  getPrimaryMonitor,
   mainloop,
-  Size,
 } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
-// deno-lint-ignore no-unused-vars
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
@@ -57,7 +56,16 @@ export default abstract class Game {
       title: this.name,
       width: 800,
       height: 450,
+      resizable: true,
+      vsync: true,
     });
+    const monitor = getPrimaryMonitor();
+    this.mainWindow.setSizeLimits(
+      800,
+      450,
+      monitor.workArea.width,
+      monitor.workArea.height,
+    );
     const surface = window.windowSurface();
     this._surfaces.set(window.id, surface);
     const context = surface.getContext("webgpu");
