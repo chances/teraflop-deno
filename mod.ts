@@ -14,7 +14,6 @@ export default abstract class Game {
   private _time = Time.zero;
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
-  private _windowFbSizes = new Map<string, Size>();
   private _mainWindow: DwmWindow | null = null;
 
   constructor(
@@ -72,7 +71,12 @@ export default abstract class Game {
     this._contexts.set(window.id, context);
     this._windows.push(window);
     this.resizeGpuSurface(window, this.device!);
-    this._windowFbSizes.set(window.id, window.framebufferSize);
+    // Update swap WebGPU surfaces when their sizes change
+    globalThis.addEventListener("framebuffersize", (ev) => {
+      this.resizeGpuSurface(ev.window, this.device!);
+      this.update();
+      if (this.active) this.render();
+    });
 
     const world = new World();
     this.initialize(world);
@@ -85,18 +89,7 @@ export default abstract class Game {
     });
   }
 
-  private update() {
-  	// Update swap WebGPU surfaces, if necessary
-    this._windows.forEach((window) => {
-      const oldSize = this._windowFbSizes.get(window.id)!;
-      const widthChanged = window.framebufferSize.width !== oldSize.width;
-      const heightChanged = window.framebufferSize.height !== oldSize.height;
-      if (widthChanged || heightChanged) {
-        this.resizeGpuSurface(window, this.device!);
-        this._windowFbSizes.set(window.id, window.framebufferSize);
-      }
-    });
-  }
+  private update() {}
 
   private render() {
     // Render the scene in each window
@@ -142,7 +135,7 @@ export class Color {
   constructor(readonly r = 0, readonly g = 0, readonly b = 0, readonly a = 1) {}
 
   static rgb(r: number, g: number, b: number): Color {
-  	return new Color(r / 255, g / 255, b / 255);
+    return new Color(r / 255, g / 255, b / 255);
   }
 
   static get red() {
