@@ -48,8 +48,29 @@ export default abstract class Game {
   abstract initialize(world: World): void;
 
   async run() {
-    this._adapter = await navigator.gpu.requestAdapter();
-    this._device = await this._adapter!.requestDevice();
+    this._adapter = await navigator.gpu.requestAdapter({
+    	powerPreference: "low-power"
+    });
+    if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
+    const info = this._adapter.requestAdapterInfo().then(console.log);
+    this._device = await this._adapter!.requestDevice({
+    	label: "Teraflop GPU Device",
+    	requiredLimits: {
+    		...this._adapter.limits,
+    		// Don't require GPU storage buffers
+    		maxDynamicStorageBuffersPerPipelineLayout: 0,
+    		maxStorageBuffersPerShaderStage: 0,
+    		maxStorageBufferBindingSize: 0,
+    		maxStorageTexturesPerShaderStage: 0,
+    		// Don't require GPGPU compute
+    		maxComputeInvocationsPerWorkgroup: 0,
+    		maxComputeWorkgroupStorageSize: 0,
+    		maxComputeWorkgroupsPerDimension: 0,
+    		maxComputeWorkgroupSizeX: 0,
+    		maxComputeWorkgroupSizeY: 0,
+    		maxComputeWorkgroupSizeZ: 0
+  		}
+    });
 
     const window = this._mainWindow = createWindow({
       title: this.name,
