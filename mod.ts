@@ -9,6 +9,7 @@ import { World, System } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import { Color } from "./graphics/mod.ts";
 export * from "./graphics/mod.ts";
+export * from "./utils.ts";
 
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
