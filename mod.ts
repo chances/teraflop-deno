@@ -6,6 +6,9 @@ import {
 } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
 import { World, System } from "./ecs/mod.ts";
+export * from "./ecs/mod.ts";
+import { Color } from "./graphics/mod.ts";
+export * from "./graphics/mod.ts";
 
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
@@ -156,26 +159,5 @@ export class Time {
 
   static get zero() {
     return new Time();
-  }
-}
-
-export class Color {
-  constructor(readonly r = 0, readonly g = 0, readonly b = 0, readonly a = 1) {}
-
-  static rgb(r: number, g: number, b: number): Color {
-    return new Color(r / 255, g / 255, b / 255);
-  }
-
-  static get red() {
-    return new Color(1);
-  }
-  static get green() {
-    return new Color(0, 1);
-  }
-  static get blue() {
-    return new Color(0, 0, 1);
-  }
-  static get cornflowerBlue() {
-    return Color.rgb(100, 149, 237);
   }
 }
