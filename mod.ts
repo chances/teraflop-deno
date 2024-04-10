@@ -5,6 +5,8 @@ import {
   mainloop,
 } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
+import { World, System } from "./ecs/mod.ts";
+
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
@@ -15,6 +17,7 @@ export default abstract class Game {
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
   private _mainWindow: DwmWindow | null = null;
+  private _systems: System[] = [];
 
   constructor(
     readonly name: string,
@@ -46,6 +49,10 @@ export default abstract class Game {
   }
 
   abstract initialize(world: World): void;
+
+  add(system: System) {
+    this._systems.push(system);
+  }
 
   async run() {
     this._adapter = await navigator.gpu.requestAdapter({
@@ -172,8 +179,3 @@ export class Color {
     return Color.rgb(100, 149, 237);
   }
 }
-
-export class World {
-  readonly entities = new Map<number, Component[]>();
-}
-export abstract class Component {}
