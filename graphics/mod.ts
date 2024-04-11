@@ -1,4 +1,4 @@
-import { Component, constantProperty, privateProperty, StorableAsComponent } from "../mod.ts";
+import { Component, constantProperty, privateProperty } from "../mod.ts";
 
 /** A graphics resource with data to initialize in GPU memory. */
 export interface Resource {
@@ -23,7 +23,7 @@ export function resource() {
  * @see `Resource`
  * @see `resource` class decorator.
  **/
-export function isResource(component: StorableAsComponent): boolean {
+export function isResource(component: Component): boolean {
   // deno-lint-ignore no-explicit-any
   return (component as any)["isResource"] === true;
 }
