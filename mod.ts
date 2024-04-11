@@ -7,7 +7,7 @@ import {
 
 import { Input } from "./input/mod.ts";
 export * from "./input/mod.ts";
-import { World, System } from "./ecs/mod.ts";
+import { System, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import { Color } from "./graphics/mod.ts";
 export * from "./graphics/mod.ts";
@@ -63,27 +63,27 @@ export default abstract class Game {
 
   async run() {
     this._adapter = await navigator.gpu.requestAdapter({
-    	powerPreference: "low-power"
+      powerPreference: "low-power",
     });
     if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
     this._adapter.requestAdapterInfo().then(console.log);
     this._device = await this._adapter!.requestDevice({
-    	label: "Teraflop GPU Device",
-    	requiredLimits: {
-    		...this._adapter.limits,
-    		// Don't require GPU storage buffers
-    		maxDynamicStorageBuffersPerPipelineLayout: 0,
-    		maxStorageBuffersPerShaderStage: 0,
-    		maxStorageBufferBindingSize: 0,
-    		maxStorageTexturesPerShaderStage: 0,
-    		// Don't require GPGPU compute
-    		maxComputeInvocationsPerWorkgroup: 0,
-    		maxComputeWorkgroupStorageSize: 0,
-    		maxComputeWorkgroupsPerDimension: 0,
-    		maxComputeWorkgroupSizeX: 0,
-    		maxComputeWorkgroupSizeY: 0,
-    		maxComputeWorkgroupSizeZ: 0
-  		}
+      label: "Teraflop GPU Device",
+      requiredLimits: {
+        ...this._adapter.limits,
+        // Don't require GPU storage buffers
+        maxDynamicStorageBuffersPerPipelineLayout: 0,
+        maxStorageBuffersPerShaderStage: 0,
+        maxStorageBufferBindingSize: 0,
+        maxStorageTexturesPerShaderStage: 0,
+        // Don't require GPGPU compute
+        maxComputeInvocationsPerWorkgroup: 0,
+        maxComputeWorkgroupStorageSize: 0,
+        maxComputeWorkgroupsPerDimension: 0,
+        maxComputeWorkgroupSizeX: 0,
+        maxComputeWorkgroupSizeY: 0,
+        maxComputeWorkgroupSizeZ: 0,
+      },
     });
 
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
@@ -112,15 +112,9 @@ export default abstract class Game {
   }
 
   createWindow(title: string, width: number, height: number) {
-    const window = createWindow({
-      title: this.name,
-      width: 800,
-      height: 450,
-      resizable: true,
-      vsync: true,
-    });
+    const window = createWindow({ title: title, width, height, resizable: true, vsync: true });
     const monitor = getPrimaryMonitor();
-    window.setSizeLimits(800, 450, monitor.workArea.width, monitor.workArea.height);
+    window.setSizeLimits(width, height, monitor.workArea.width, monitor.workArea.height);
     this._inputMaps.set(window.id, new Input());
     return window;
   }
