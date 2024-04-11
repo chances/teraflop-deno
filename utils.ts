@@ -5,13 +5,24 @@ export function nameof<T>(symbol: SymbolKey<T>) {
   return symbol;
 }
 
-/** @returns A constant `Object` property descriptor, i.e. the property is not `writable`. */
+/** @returns An `Object` property descriptor for a constant property, i.e. it is not `writable`. */
 // deno-lint-ignore no-explicit-any
-export function constantProperty(value: any): PropertyDescriptor {
+export function constantProperty(value?: any): PropertyDescriptor {
   return {
     enumerable: true,
     configurable: false,
     writable: false,
+    value
+  };
+}
+
+/** @returns An `Object` property descriptor for a private property, i.e. it is not `enumarable`. */
+// deno-lint-ignore no-explicit-any
+export function privateProperty(value?: any): PropertyDescriptor {
+  return {
+    enumerable: false,
+    configurable: false,
+    writable: true,
     value
   };
 }
