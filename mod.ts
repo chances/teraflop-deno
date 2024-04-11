@@ -5,31 +5,13 @@ import {
   mainloop,
 } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
+import { Input } from "./input/mod.ts";
+export * from "./input/mod.ts";
 import { World, System } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import { Color } from "./graphics/mod.ts";
 export * from "./graphics/mod.ts";
 export * from "./utils.ts";
-
-export class Input {
-  readonly map = Object.seal(new InputMap(this));
-}
-
-export class InputMap {
-  constructor (private input: Input) {}
-
-  bind(action: string) {
-    return new InputMapBuilder(this.input);
-  }
-}
-
-export class InputMapBuilder {
-  constructor (private input: Input) {}
-
-  keyboardPressed(key: KeyboardKey) {}
-  keyboardHeld(key: KeyboardKey) {}
-  keyboardReleased(key: KeyboardKey) {}
-}
 
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
