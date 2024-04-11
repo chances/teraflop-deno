@@ -1,7 +1,8 @@
-import { Component, constantProperty } from "../mod.ts";
+import { Component, constantProperty, StorableAsComponent } from "../mod.ts";
 
 /** A graphics resource with data to initialize in GPU memory. */
-interface Resource {
+export interface Resource {
+  initialized: boolean;
   initialize(adapter: GPUAdapter, device: GPUDevice): void;
 }
 
@@ -9,11 +10,26 @@ interface Resource {
  * Decorates a class as a GPU resource.
  * @see `Resource`
  **/
-function resource() {
+export function resource() {
   // deno-lint-ignore ban-types, no-explicit-any
   return function (constructor: Function, _: any) {
     Object.defineProperty(constructor.prototype, "isResource", constantProperty(true));
+    Object.defineProperty(constructor.prototype, "_initialized", {
+      enumerable: true,
+      configurable: false,
+      value: false,
+    });
   }
+}
+
+/**
+ * @returns Whether the given component is a GPU resource.
+ * @see `Resource`
+ * @see `resource` class decorator.
+ **/
+export function isResource(component: StorableAsComponent): boolean {
+  // deno-lint-ignore no-explicit-any
+  return (component as any)["isResource"] === true;
 }
 
 export const enum ShaderStage {
@@ -25,6 +41,11 @@ export @resource() class Shader extends Component implements Resource {
 
   constructor(readonly stage: ShaderStage, readonly source: string, readonly label?: string) {
     super();
+  }
+
+  get initialized() {
+    // deno-lint-ignore no-explicit-any
+    return Object.hasOwn(this, "_initialized") ? (this as any)["_initialized"] : false;
   }
 
   get module() {
@@ -42,6 +63,11 @@ export @resource() class Shader extends Component implements Resource {
 export @resource() class Material extends Component implements Resource {
   constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
     super();
+  }
+
+  get initialized() {
+    // deno-lint-ignore no-explicit-any
+    return Object.hasOwn(this, "_initialized") ? (this as any)["_initialized"] : false;
   }
 
   initialize(adapter: GPUAdapter, device: GPUDevice): void {

@@ -7,10 +7,21 @@ import {
 
 import { Input } from "./input/mod.ts";
 export * from "./input/mod.ts";
-import { System, World } from "./ecs/mod.ts";
+import { Filter, RunnableAsSystem, System, query, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
-import { Color } from "./graphics/mod.ts";
-export * from "./graphics/mod.ts";
+import * as graphics from "./graphics/mod.ts";
+import { Color, isResource, Resource } from "./graphics/mod.ts";
+export type Position = graphics.Position;
+export {
+  Color,
+  Material,
+  Mesh,
+  isResource,
+  Shader,
+  ShaderStage,
+  VertexPosColor,
+  VertexPosNormalColor
+} from "./graphics/mod.ts";
 export * from "./utils.ts";
 
 export default abstract class Game {
@@ -19,6 +30,7 @@ export default abstract class Game {
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
   private _active = false;
+  private world = new World();
   private _time = Time.zero;
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
@@ -57,8 +69,8 @@ export default abstract class Game {
 
   abstract initialize(world: World): void;
 
-  add(system: System) {
-    this._systems.push(system);
+  add(system: RunnableAsSystem) {
+    this._systems.push(typeof system === "function" ? system(this.world) : system);
   }
 
   async run() {
@@ -93,6 +105,7 @@ export default abstract class Game {
     this._contexts.set(window.id, context);
     this._windows.push(window);
     this.resizeGpuSurface(window, this.device!);
+
     // Update swap WebGPU surfaces when their sizes change
     globalThis.addEventListener("framebuffersize", (ev) => {
       this.resizeGpuSurface(ev.window, this.device!);
@@ -100,14 +113,22 @@ export default abstract class Game {
       if (this.active) this.render();
     });
 
-    const world = new World();
-    this.initialize(world);
+    this.add(System.from(() => ({
+      query: query(Filter.by(isResource)),
+      system: entities => entities.forEach(entity => {
+        const uninitializedResources = (entity[1].filter(isResource) as Resource[])
+          .filter(resource => resource.initialized === false);
+        uninitializedResources.forEach(console.log);
+        uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
+      })
+    })));
+    this.initialize(this.world);
     this._active = true;
 
     await mainloop(() => {
       this.update();
-      if (!this.active) this.mainWindow.close();
-      this.render();
+      if (this.active) this.render();
+      else this.mainWindow.close();
     });
   }
 
@@ -119,7 +140,9 @@ export default abstract class Game {
     return window;
   }
 
-  private update() {}
+  private update() {
+    this._systems.forEach(system => system.run());
+  }
 
   private render() {
     // Render the scene in each window
