@@ -1,16 +1,16 @@
 import { nameof, SymbolKey } from "../utils.ts";
 
-export type StorableAsComponent = Object | number | boolean;
+export type StorableAsComponent = Component | object;
 
 let lastId = -1;
 
 export class World {
   readonly resources = Object.seal(new Resources());
-  readonly entities = new Map<number, Component[]>();
+  readonly entities = new Map<number, StorableAsComponent[]>();
 
-  spawn<T extends Component>(...arg: T[]) {
+  spawn(...components: StorableAsComponent[]) {
     const id = lastId += 1;
-    this.entities.set(id, Array.from(arguments));
+    this.entities.set(id, components);
     return id;
   }
 }

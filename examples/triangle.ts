@@ -25,11 +25,14 @@ class App extends Game {
       new Shader(ShaderStage.fragment, await import("./triangle.wgsl")),
     ];
 
-    world.spawn(new Material(shaders, No.depthTest), new Mesh<VertexPosColor>([
-      new VertexPosColor([0.0, -0.5, 0], Color.red),
-      new VertexPosColor([0.5, 0.5, 0], Color.green),
-      new VertexPosColor([-0.5, 0.5, 0], Color.blue),
-    ], [0, 1, 2]));
+    world.spawn(
+      new Material(shaders, No.depthTest),
+      new Mesh<VertexPosColor>([
+        new VertexPosColor([0.0, -0.5, 0], Color.red),
+        new VertexPosColor([0.5, 0.5, 0], Color.green),
+        new VertexPosColor([-0.5, 0.5, 0], Color.blue),
+      ], [0, 1, 2]),
+    );
   }
 }
 
