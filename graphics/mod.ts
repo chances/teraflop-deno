@@ -1,9 +1,20 @@
+import { Component } from "../mod.ts";
+
 export const enum ShaderStage {
   vertex = "vertex",
   fragment = "fragment"
 }
-export class Shader {}
-export class Material {}
+export class Shader extends Component {
+  constructor(readonly stage: ShaderStage, readonly source: string) {
+    super();
+  }
+}
+
+export class Material extends Component {
+  constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
+    super();
+  }
+}
 
 export type Position = [number, number] | [number, number, number];
 
@@ -27,8 +38,10 @@ export class VertexPosNormalColor extends Vertex {
   }
 }
 
-export class Mesh<T extends Vertex> {
-  constructor(readonly vertices: T[], readonly indices: number[]) {}
+export class Mesh<T extends Vertex> extends Component {
+  constructor(readonly vertices: T[], readonly indices: number[]) {
+    super();
+  }
 }
 
 export class Color {
