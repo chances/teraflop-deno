@@ -66,7 +66,7 @@ export default abstract class Game {
     	powerPreference: "low-power"
     });
     if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
-    const info = this._adapter.requestAdapterInfo().then(console.log);
+    this._adapter.requestAdapterInfo().then(console.log);
     this._device = await this._adapter!.requestDevice({
     	label: "Teraflop GPU Device",
     	requiredLimits: {
