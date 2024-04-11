@@ -1,8 +1,7 @@
 #!/usr/bin/env deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env
+import { vec3 } from "npm:wgpu-matrix@2.8.0";
 
-import { vec3 } from "npm:wgpu-matrix@2.8.0"
-
-import Game, { Color, Input, Material, Mesh, No, Shader, ShaderStage, VertexPosColor, World } from "../mod.ts";
+import Game, { Color, Input, KeyboardKey, Material, Mesh, No, Shader, ShaderStage, VertexPosColor, World } from "../mod.ts";
 
 class App extends Game {
   initialize(world: World) {
