@@ -20,7 +20,7 @@ class Resources {
   readonly _resources = new Map<string, any>();
 
   /** @returns The given `value`. */
-  set<T extends any>(value: T): T {
+  set<T extends object>(value: T): T {
     const key = typeof value === "object" ? nameof<T>(value.prototype) : typeof value;
     this._resources.set(key, value);
     return value;
