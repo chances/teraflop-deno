@@ -1,4 +1,5 @@
 #!/usr/bin/env deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env
+import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 import { vec3 } from "npm:wgpu-matrix@2.8.0";
 
 import Game, {
@@ -20,9 +21,10 @@ class App extends Game {
     const input = world.resources.get(Input) as Resource<Input>;
     input?.map.bind("exit").keyboardPressed(KeyboardKey.escape);
 
+    const triangleShader = await Deno.readTextFile(path.join(import.meta.dirname ?? Deno.cwd(), "triangle.wgsl"));
     const shaders = [
-      new Shader(ShaderStage.vertex, await import("./triangle.wgsl")),
-      new Shader(ShaderStage.fragment, await import("./triangle.wgsl")),
+      new Shader(ShaderStage.vertex, triangleShader),
+      new Shader(ShaderStage.fragment, triangleShader),
     ];
 
     world.spawn(
@@ -37,4 +39,4 @@ class App extends Game {
 }
 
 // See https://deno.land/manual/examples/module_metadata#concepts
-if (import.meta.main) await new App("WebGPU").run();
+if (import.meta.main) new App("WebGPU").run();
