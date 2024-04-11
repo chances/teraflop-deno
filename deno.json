@@ -2,5 +2,8 @@
   "tasks": {
     "lint": "deno check mod.ts",
     "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts"
+  },
+  "fmt": {
+    "lineWidth": 120
   }
 }
