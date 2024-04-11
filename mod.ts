@@ -2,7 +2,7 @@ import {
   createWindow,
   DwmWindow,
   getPrimaryMonitor,
-  mainloop,
+  pollEvents,
 } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
 import { Input } from "./input/mod.ts";
@@ -67,7 +67,7 @@ export default abstract class Game {
     return this._mainWindow!;
   }
 
-  abstract initialize(world: World): void;
+  abstract initialize(world: World): Promise<void>;
 
   add(system: RunnableAsSystem) {
     this._systems.push(typeof system === "function" ? system(this.world) : system);
@@ -122,14 +122,13 @@ export default abstract class Game {
         uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
       })
     })));
-    this.initialize(this.world);
+    await this.initialize(this.world);
     this._active = true;
 
-    await mainloop(() => {
+    while (this.active) {
       this.update();
-      if (this.active) this.render();
-      else this.mainWindow.close();
-    });
+      this.render();
+    };
   }
 
   createWindow(title: string, width: number, height: number) {
@@ -141,12 +140,13 @@ export default abstract class Game {
   }
 
   private update() {
+    pollEvents();
     this._systems.forEach(system => system.run());
   }
 
   private render() {
     // Render the scene in each window
-    this._windows.forEach((window) => {
+    this._windows.forEach(window => {
       const renderPassDescriptor = {
         colorAttachments: [{
           view: this._contexts.get(window.id)!.getCurrentTexture().createView(),
