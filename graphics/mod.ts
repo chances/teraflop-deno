@@ -1,19 +1,35 @@
+export const enum ShaderStage {
+  vertex = "vertex",
+  fragment = "fragment"
+}
 export class Shader {}
 export class Material {}
 
-/** Decorates and tags a class as GPU vertex attributes. */
-export function attributes() {
-  return function (target: Function) {
-    Object.defineProperty(target.prototype, "isVertexAttributes", {
-      enumerable: true,
-      configurable: false,
-      writable: false,
-      value: true,
-      set: undefined
-    });
+export type Position = [number, number] | [number, number, number];
+
+/** Vertex attributes. */
+abstract class Vertex {}
+
+/** Vertex attributes representing a colored point in 2D or 3D space. */
+export class VertexPosColor extends Vertex {
+  constructor(readonly position: Position, readonly color: Color) {
+    super();
   }
 }
-export @attributes class VertexPosColor {}
+
+/** Vertex attributes representing a colored point in 2D or 3D space, including a normal direction. */
+export class VertexPosNormalColor extends Vertex {
+  constructor(readonly position: Position, readonly normal: Position, readonly color: Color) {
+    super();
+    if (position.length !== normal.length) throw new Error(
+      "A vertex position and normal must be in the same coordinate space."
+    );
+  }
+}
+
+export class Mesh<T extends Vertex> {
+  constructor(readonly vertices: T[], readonly indices: number[]) {}
+}
 
 export class Color {
   constructor(readonly r = 0, readonly g = 0, readonly b = 0, readonly a = 1) {}

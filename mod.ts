@@ -11,6 +11,26 @@ import { Color } from "./graphics/mod.ts";
 export * from "./graphics/mod.ts";
 export * from "./utils.ts";
 
+export class Input {
+  readonly map = Object.seal(new InputMap(this));
+}
+
+export class InputMap {
+  constructor (private input: Input) {}
+
+  bind(action: string) {
+    return new InputMapBuilder(this.input);
+  }
+}
+
+export class InputMapBuilder {
+  constructor (private input: Input) {}
+
+  keyboardPressed(key: KeyboardKey) {}
+  keyboardHeld(key: KeyboardKey) {}
+  keyboardReleased(key: KeyboardKey) {}
+}
+
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
@@ -21,6 +41,7 @@ export default abstract class Game {
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
   private _mainWindow: DwmWindow | null = null;
+  private _inputMaps = new Map<string, Input>();
   private _systems: System[] = [];
 
   constructor(
@@ -83,20 +104,7 @@ export default abstract class Game {
   		}
     });
 
-    const window = this._mainWindow = createWindow({
-      title: this.name,
-      width: 800,
-      height: 450,
-      resizable: true,
-      vsync: true,
-    });
-    const monitor = getPrimaryMonitor();
-    this.mainWindow.setSizeLimits(
-      800,
-      450,
-      monitor.workArea.width,
-      monitor.workArea.height,
-    );
+    const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
     this._surfaces.set(window.id, surface);
     const context = surface.getContext("webgpu");
@@ -119,6 +127,20 @@ export default abstract class Game {
       if (!this.active) this.mainWindow.close();
       this.render();
     });
+  }
+
+  createWindow(title: string, width: number, height: number) {
+    const window = createWindow({
+      title: this.name,
+      width: 800,
+      height: 450,
+      resizable: true,
+      vsync: true,
+    });
+    const monitor = getPrimaryMonitor();
+    window.setSizeLimits(800, 450, monitor.workArea.width, monitor.workArea.height);
+    this._inputMaps.set(window.id, new Input());
+    return window;
   }
 
   private update() {}

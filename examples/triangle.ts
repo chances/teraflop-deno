@@ -2,12 +2,12 @@
 
 import { vec3 } from "npm:wgpu-matrix@2.8.0"
 
-import Game, { Color, Input, Material, No, Shader, VertexPosColor, World } from "../mod.ts";
+import Game, { Color, Input, Material, Mesh, No, Shader, ShaderStage, VertexPosColor, World } from "../mod.ts";
 
 class App extends Game {
   initialize(world: World) {
-    const input = world.resources.get<Input>();
-    input.map.bind("exit").keyboardPressed(KeyboardKey.escape);
+    const input = world.resources.get(Input);
+    input?.map.bind("exit").keyboardPressed(KeyboardKey.escape);
 
     const shaders = [
       new Shader(ShaderStage.vertex, import("assets/shaders/triangle.wgsl")),
