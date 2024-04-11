@@ -118,7 +118,6 @@ export default abstract class Game {
       system: entities => entities.forEach(entity => {
         const uninitializedResources = (entity[1].filter(isResource) as Resource[])
           .filter(resource => resource.initialized === false);
-        uninitializedResources.forEach(console.log);
         uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
       })
     })));

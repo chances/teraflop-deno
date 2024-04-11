@@ -41,7 +41,9 @@ export type Entity = [number, Component[]];
 
 export abstract class Component {}
 
-function filterBy(predicate: (value: Component) => boolean): (entity: Entity) => boolean {
+export type ComponentFilter = (value: Component) => boolean;
+
+function filterBy(predicate: ComponentFilter): (entity: Entity) => boolean {
   return entity => entity[1].some(predicate);
 }
 
@@ -50,15 +52,15 @@ export interface Query<T extends Component = Component> {
 }
 
 export class Filter implements Query {
-  constructor(private predicate: ReturnType<typeof filterBy>) {};
+  constructor(private predicate: ComponentFilter) {};
 
   /** Fluently constructs a new `Filter` query from the given `predicate`. */
-  static by(predicate: ReturnType<typeof filterBy>) {
+  static by(predicate: ComponentFilter) {
     return new Filter(predicate);
   }
 
   match(entity: Entity): boolean {
-    return this.predicate(entity);
+    return filterBy(this.predicate)(entity);
   }
 }
 
@@ -108,7 +110,8 @@ export abstract class System {
         this.system = descriptor.system.bind(this);
       }
       run(): void {
-        this.system(this.entityQuery(this.world));
+        const entities = this.entityQuery(this.world);
+        this.system(entities);
       }
     }
     return (world) => new _GeneratedSystem(world, generator);

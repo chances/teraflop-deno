@@ -1,4 +1,4 @@
-import { Component, constantProperty, StorableAsComponent } from "../mod.ts";
+import { Component, constantProperty, privateProperty, StorableAsComponent } from "../mod.ts";
 
 /** A graphics resource with data to initialize in GPU memory. */
 export interface Resource {
@@ -14,11 +14,7 @@ export function resource() {
   // deno-lint-ignore ban-types, no-explicit-any
   return function (constructor: Function, _: any) {
     Object.defineProperty(constructor.prototype, "isResource", constantProperty(true));
-    Object.defineProperty(constructor.prototype, "_initialized", {
-      enumerable: true,
-      configurable: false,
-      value: false,
-    });
+    Object.defineProperty(constructor.prototype, "_initialized", privateProperty());
   }
 }
 
@@ -32,6 +28,16 @@ export function isResource(component: StorableAsComponent): boolean {
   return (component as any)["isResource"] === true;
 }
 
+function isInitialized(component: Resource): boolean {
+  // deno-lint-ignore no-explicit-any
+  return Object.hasOwn(component, "_initialized") ? (component as any)["_initialized"] === true : false;
+}
+
+function markInitialized(component: Resource) {
+  // deno-lint-ignore no-explicit-any
+  (component as any)["_initialized"] = true;
+}
+
 export const enum ShaderStage {
   vertex = "vertex",
   fragment = "fragment",
@@ -43,9 +49,8 @@ export @resource() class Shader extends Component implements Resource {
     super();
   }
 
-  get initialized() {
-    // deno-lint-ignore no-explicit-any
-    return Object.hasOwn(this, "_initialized") ? (this as any)["_initialized"] : false;
+  get initialized(): boolean {
+    return isInitialized(this);
   }
 
   get module() {
@@ -57,6 +62,7 @@ export @resource() class Shader extends Component implements Resource {
       code: this.source,
       label: this.label
     });
+    markInitialized(this);
   }
 }
 
@@ -65,13 +71,13 @@ export @resource() class Material extends Component implements Resource {
     super();
   }
 
-  get initialized() {
-    // deno-lint-ignore no-explicit-any
-    return Object.hasOwn(this, "_initialized") ? (this as any)["_initialized"] : false;
+  get initialized(): boolean {
+    return isInitialized(this);
   }
 
   initialize(adapter: GPUAdapter, device: GPUDevice): void {
     this.shaders.forEach(shader => shader.initialize(adapter, device));
+    markInitialized(this);
   }
 }
 
