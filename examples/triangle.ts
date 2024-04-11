@@ -16,13 +16,13 @@ import Game, {
 } from "../mod.ts";
 
 class App extends Game {
-  initialize(world: World) {
+  async initialize(world: World) {
     const input = world.resources.get(Input) as Resource<Input>;
     input?.map.bind("exit").keyboardPressed(KeyboardKey.escape);
 
     const shaders = [
-      new Shader(ShaderStage.vertex, import("assets/shaders/triangle.wgsl")),
-      new Shader(ShaderStage.fragment, import("assets/shaders/triangle.wgsl"))
+      new Shader(ShaderStage.vertex, await import("./triangle.wgsl")),
+      new Shader(ShaderStage.fragment, await import("./triangle.wgsl")),
     ];
 
     world.spawn(new Material(shaders, No.depthTest), new Mesh<VertexPosColor>([
