@@ -15,6 +15,7 @@ export class World {
   }
 }
 
+export type Resource<T> = T | null;
 class Resources {
   readonly _resources = new Map<string, any>();
 
@@ -25,8 +26,8 @@ class Resources {
     return value;
   }
 
-  /** @returns The resource or `null` it doesn't exist. */
-  get<T extends any>(symbol: SymbolKey<T>): T | null {
+  /** @returns The resource, or `null` if it doesn't exist. */
+  get<T extends object>(symbol: SymbolKey<T>): Resource<T> {
     const key = nameof(symbol);
     if (!this._resources.has(key)) return null;
     return this._resources.get(key) as T;
