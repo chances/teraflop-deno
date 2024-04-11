@@ -43,16 +43,45 @@ export abstract class Component {}
 
 export type ComponentFilter = (value: Component) => boolean;
 
-function filterBy(predicate: ComponentFilter): (entity: Entity) => boolean {
-  return entity => entity[1].some(predicate);
+export type QueryGenerator = (...queries: Query[]) => QueryFn;
+export type QueryFn<T = Entity> = (world: World) => T[];
+
+function composeQuery<T = Entity, U = Entity>(query: Query<T>, callback: (value: T, index: number, array: T[]) => U) {
+  return class _ComposedQuery extends Query<U> {
+    match(entity: Entity): boolean {
+      return query.match(entity);
+    }
+
+    override entities(world: World) {
+      return query.entities(world).map((x, i, arr) => callback(x, i, arr));
+    }
+  }
 }
 
-export interface Query<T extends Component = Component> {
-  match(entity: Entity): boolean;
+export abstract class Query<E = Entity> {
+  abstract match(entity: Entity): boolean;
+
+  /** @returns Set of entities that match this query. */
+  entities(world: World): E[] {
+    const matches =  Array.from(world.entities.entries())
+      .filter(this.match.bind(this)) as Entity[];
+    return matches as E[];
+  }
+
+  /**
+   * Calls a defined callback function on each component matched by this query, and returns an array that contains the results.
+   * @param callback A function that accepts up to three arguments.
+   * @remarks The map method calls the callback function one time for each component matched by this query.
+   */
+  map<U extends E>(callback: (value: E, index: number, array: E[]) => U): Query<U> {
+    return new (composeQuery(this, callback))();
+  }
 }
 
-export class Filter implements Query {
-  constructor(private predicate: ComponentFilter) {};
+export class Filter extends Query {
+  constructor(private predicate: ComponentFilter) {
+    super();
+  }
 
   /** Fluently constructs a new `Filter` query from the given `predicate`. */
   static by(predicate: ComponentFilter) {
@@ -60,12 +89,14 @@ export class Filter implements Query {
   }
 
   match(entity: Entity): boolean {
-    return filterBy(this.predicate)(entity);
+    return entity[1].some(this.predicate);
   }
 }
 
-export class ComponentOf<T extends Component = Component> implements Query<T> {
-  constructor(readonly symbol: Function) {}
+export class ComponentOf<T extends Component = Component> extends Query<T> {
+  constructor(readonly symbol: Function) {
+    super();
+  }
 
   match(entity: Entity): boolean {
     return entity[1].some(component => component instanceof this.symbol);
@@ -80,42 +111,11 @@ export function query(...queries: Query[]): QueryFn {
   };
 }
 
-export type QueryGenerator = (...queries: Query[]) => QueryFn;
-export type QueryFn = (this: System, world: World) => Entity[];
-
-export type SystemGenerator = (world: World) => System;
-export type SystemFn = (this: System, entities: Entity[]) => void;
-export interface SystemDescriptor {
-  query: QueryFn,
-  system: SystemFn,
-}
-export type SystemDescriptorGenerator = () => SystemDescriptor;
 /** Types that are runnable as ECS systems. */
-export type RunnableAsSystem = SystemGenerator | System;
+export type RunnableAsSystem = System;
 
 export abstract class System {
   constructor(readonly world: World) {}
-
-  /** Generate a `System` given a functional system generator. */
-  static from(generator: SystemDescriptorGenerator): SystemGenerator {
-    class _GeneratedSystem extends System {
-      private entityQuery: QueryFn;
-      private system: SystemFn;
-
-      constructor(world: World, generator: SystemDescriptorGenerator) {
-        super(world);
-
-        const descriptor = generator();
-        this.entityQuery = descriptor.query.bind(this);
-        this.system = descriptor.system.bind(this);
-      }
-      run(): void {
-        const entities = this.entityQuery(this.world);
-        this.system(entities);
-      }
-    }
-    return (world) => new _GeneratedSystem(world, generator);
-  }
 
   /** Run this system. */
   abstract run(): void;

@@ -7,7 +7,7 @@ import {
 
 import { Input } from "./input/mod.ts";
 export * from "./input/mod.ts";
-import { Filter, RunnableAsSystem, System, query, World } from "./ecs/mod.ts";
+import { Entity, Filter, RunnableAsSystem, System, query, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import * as graphics from "./graphics/mod.ts";
 import { Color, isResource, Resource } from "./graphics/mod.ts";
@@ -70,7 +70,7 @@ export default abstract class Game {
   abstract initialize(world: World): Promise<void>;
 
   add(system: RunnableAsSystem) {
-    this._systems.push(typeof system === "function" ? system(this.world) : system);
+    this._systems.push(system);
   }
 
   async run() {
@@ -113,18 +113,11 @@ export default abstract class Game {
       if (this.active) this.render();
     });
 
-    this.add(System.from(() => ({
-      query: query(Filter.by(isResource)),
-      system: entities => entities.forEach(entity => {
-        const uninitializedResources = (entity[1].filter(isResource) as Resource[])
-          .filter(resource => resource.initialized === false);
-        uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
-      })
-    })));
     await this.initialize(this.world);
     this._active = true;
 
     while (this.active) {
+      // FIXME: There is a massive memory leak, i.e. ~1MB per second
       this.update();
       this.render();
     };
@@ -138,8 +131,17 @@ export default abstract class Game {
     return window;
   }
 
+  private initializeResources(entity: Entity) {
+    const uninitializedResources = (entity[1].filter(isResource) as Resource[])
+      .filter(resource => resource.initialized === false);
+    uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
+  }
+
   private update() {
     pollEvents();
+    // TODO: Make this system opt-in?
+    Filter.by(isResource).entities(this.world)
+      .forEach(entity => this.initializeResources(entity));
     this._systems.forEach(system => system.run());
   }
 
