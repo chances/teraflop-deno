@@ -7,6 +7,22 @@ let lastId = -1;
 export class World {
   readonly resources = Object.seal(new Resources());
   readonly entities = new Map<number, Component[]>();
+  readonly _tags = new Map<number, string[]>();
+
+  tag(entity: Entity, label: string) {
+    if (!this._tags.has(entity[0])) this._tags.get(entity[0])?.push(label);
+    else this._tags.set(entity[0], [label]);
+  }
+
+  hasTag(entity: Entity, label: string) {
+    if (!this._tags.has(entity[0])) return false;
+    return this._tags.get(entity[0])?.includes(label);
+  }
+
+  tags(entity: Entity) {
+    if (!this._tags.has(entity[0])) return [];
+    return Array.from(this._tags.get(entity[0])!);
+  }
 
   spawn(...components: Component[]) {
     const id = lastId += 1;
