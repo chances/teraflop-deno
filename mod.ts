@@ -10,13 +10,16 @@ export * from "./input/mod.ts";
 import { Entity, Filter, RunnableAsSystem, System, query, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import * as graphics from "./graphics/mod.ts";
-import { Color, isResource, Resource } from "./graphics/mod.ts";
+import { Color, isResource, Material, Pipeline, Resource } from "./graphics/mod.ts";
+import { ComponentOf } from "./ecs/mod.ts";
+import { Mesh } from "./graphics/mod.ts";
 export type Position = graphics.Position;
 export {
   Color,
   Material,
   Mesh,
   isResource,
+  Pipeline,
   Shader,
   ShaderStage,
   VertexPosColor,
@@ -24,11 +27,14 @@ export {
 } from "./graphics/mod.ts";
 export * from "./utils.ts";
 
+const SURFACE_FORMAT: GPUTextureFormat = "bgra8unorm";
+
 export default abstract class Game {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
+  private _pipelines = new Map<string, Pipeline>();
   private _active = false;
   private world = new World();
   private _time = Time.zero;
@@ -160,6 +166,41 @@ export default abstract class Game {
 
       const commandEncoder = this.device!.createCommandEncoder();
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+
+      // Render each world object given its Mesh and Material
+      // TODO: Group entities by Material instances to reduce pipeline switching
+      // TODO: Group entities by Mesh instances to perform indexed draws
+      query(new ComponentOf<Mesh>(Mesh), new ComponentOf<Material>(Material)).entities(this.world).forEach(async (entity) => {
+        const mesh = entity[1].find(c => c instanceof Mesh)! as Mesh;
+        const material = entity[1].find(c => c instanceof Material)! as Material;
+
+        const pipelineKey = material.hash;
+        // Create a render pipeline for each material
+        if (!this._pipelines.has(pipelineKey)) {
+          const pipeline = new Pipeline(material, mesh.vertexLayout, [{
+            format: SURFACE_FORMAT,
+            // TODO: Extract this to the Material class
+            blend: {
+              color: {
+                srcFactor: "one",
+                dstFactor: "one-minus-src-alpha",
+              },
+              alpha: {
+                srcFactor: "one",
+                dstFactor: "one-minus-src-alpha",
+              }
+            }
+          }], undefined, pipelineKey);
+          await pipeline.initialize(this._adapter!, this._device!);
+          this._pipelines.set(pipelineKey, pipeline);
+        }
+
+        passEncoder.setPipeline(this._pipelines.get(pipelineKey)!.pipeline!);
+        passEncoder.setVertexBuffer(0, mesh.vertexBuffer!);
+        passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
+        passEncoder.draw(mesh.vertices.length);
+      });
+
       passEncoder.end();
 
       this.device!.queue.submit([commandEncoder.finish()]);
@@ -171,7 +212,7 @@ export default abstract class Game {
     const { width, height } = window.framebufferSize;
     this._contexts.get(window.id)?.configure({
       device,
-      format: "bgra8unorm",
+      format: SURFACE_FORMAT,
       width,
       height,
     });
