@@ -1,3 +1,13 @@
+import hashObject from "npm:hash-object@5.0.1";
+
+export function hash(...objects: object[]): string {
+  return hashObject(
+    // deno-lint-ignore no-explicit-any
+    objects.reduce((obj, x, i) => ({ ...obj, [i]: x }), {} as Record<number, any>),
+    { algorithm: 'sha1' }
+  );
+}
+
 // deno-lint-ignore ban-types
 export type SymbolKey<T> = Function | Extract<keyof T, string> | Extract<keyof T, symbol>;
 export function nameof<T>(symbol: SymbolKey<T>) {

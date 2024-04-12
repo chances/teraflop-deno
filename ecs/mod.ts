@@ -1,4 +1,5 @@
 // deno-lint-ignore-file ban-types
+import hashObject from "npm:hash-object@5.0.1";
 import { nameof } from "../utils.ts";
 
 let lastId = -1;
@@ -39,7 +40,12 @@ class Resources {
 
 export type Entity = [number, Component[]];
 
-export abstract class Component {}
+export abstract class Component {
+  /** @returns A SHA-1 hash of this component. */
+  get hash(): string {
+    return hashObject(this, {algorithm: 'sha1'});
+  }
+}
 
 export type ComponentFilter = (value: Component) => boolean;
 
