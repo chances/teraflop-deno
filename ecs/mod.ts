@@ -70,7 +70,7 @@ export abstract class Query<E = Entity> {
   /** @returns Set of entities that match this query. */
   entities(world: World): E[] {
     const matches =  Array.from(world.entities.entries())
-      .filter(this.match.bind(this)) as Entity[];
+      .filter(entity => this.match(entity)) as Entity[];
     return matches as E[];
   }
 
