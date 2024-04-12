@@ -10,12 +10,10 @@ export interface Resource {
  * Decorates a class as a GPU resource.
  * @see `Resource`
  **/
-export function resource() {
-  // deno-lint-ignore ban-types, no-explicit-any
-  return function (constructor: Function, _: any) {
-    Object.defineProperty(constructor.prototype, "isResource", constantProperty(true));
-    Object.defineProperty(constructor.prototype, "_initialized", privateProperty());
-  }
+// deno-lint-ignore ban-types, no-explicit-any
+export function resource(constructor: Function, _: any) {
+  Object.defineProperty(constructor.prototype, "isResource", constantProperty(true));
+  Object.defineProperty(constructor.prototype, "_initialized", privateProperty());
 }
 
 /**
@@ -42,7 +40,7 @@ export const enum ShaderStage {
   vertex = "vertex",
   fragment = "fragment",
 }
-export @resource() class Shader extends Component implements Resource {
+export @resource class Shader extends Component implements Resource {
   private _module: GPUShaderModule | null = null;
 
   constructor(readonly stage: ShaderStage, readonly source: string, readonly label?: string) {
@@ -66,7 +64,7 @@ export @resource() class Shader extends Component implements Resource {
   }
 }
 
-export @resource() class Material extends Component implements Resource {
+export @resource class Material extends Component implements Resource {
   constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
     super();
   }
