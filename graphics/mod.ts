@@ -207,6 +207,59 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
   }
 }
 
+export @resource class Pipeline extends Component implements Resource {
+  private _pipeline: GPURenderPipeline | null = null;
+
+  constructor(
+    readonly material: Material,
+    readonly vertexBufferLayout: GPUVertexBufferLayout[],
+    readonly targets: GPUColorTargetState[],
+    readonly depthFormat?: GPUTextureFormat,
+    readonly label?: string,
+  ) {
+    super();
+  }
+
+  get pipeline() {
+    return this._pipeline;
+  }
+
+  get initialized(): boolean {
+    return isInitialized(this);
+  }
+
+  async initialize(_adapter: GPUAdapter, device: GPUDevice) {
+    const vs = this.material.shaders.find(shader => shader.stage === ShaderStage.vertex)!;
+    const fs = this.material.shaders.find(shader => shader.stage === ShaderStage.fragment)!;
+
+    this._pipeline = await device.createRenderPipelineAsync({
+      layout: "auto",
+      label: this.label,
+      primitive: {
+        topology: "triangle-list",
+        frontFace: "cw",
+        cullMode: "back"
+      },
+      vertex: {
+        module: vs.module!,
+        entryPoint: vs.entryPoint,
+        buffers: this.vertexBufferLayout
+      },
+      fragment: {
+        module: fs.module!,
+        entryPoint: fs.entryPoint,
+        targets: this.targets
+      },
+      depthStencil: this.material.depthTest ? {
+        depthCompare: "less-equal",
+        format: this.depthFormat!,
+        depthWriteEnabled: true
+      } : undefined
+    });
+    markInitialized(this);
+  }
+}
+
 export class Color {
   constructor(readonly r = 0, readonly g = 0, readonly b = 0, readonly a = 1) {}
 
