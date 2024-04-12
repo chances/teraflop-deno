@@ -80,6 +80,11 @@ export default abstract class Game {
   }
 
   async run() {
+    globalThis.addEventListener("unhandledrejection", (e) => {
+      console.log(`${Date.now()}: ${e.reason}`);
+      e.preventDefault();
+    });
+
     this._adapter = await navigator.gpu.requestAdapter({
       powerPreference: "low-power",
     });
