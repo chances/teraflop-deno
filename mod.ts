@@ -132,7 +132,7 @@ export default abstract class Game {
   }
 
   private initializeResources(entity: Entity) {
-    const uninitializedResources = (entity[1].filter(isResource) as Resource[])
+    const uninitializedResources = (entity[1].filter(isResource) as unknown as Resource[])
       .filter(resource => resource.initialized === false);
     uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
   }
@@ -142,6 +142,7 @@ export default abstract class Game {
     // TODO: Make this system opt-in?
     Filter.by(isResource).entities(this.world)
       .forEach(entity => this.initializeResources(entity));
+
     this._systems.forEach(system => system.run());
   }
 

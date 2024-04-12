@@ -99,7 +99,7 @@ export class Filter extends Query {
   }
 }
 
-export class ComponentOf<T extends Component = Component> extends Query<T> {
+export class ComponentOf<T extends Component = Component> extends Query {
   constructor(readonly symbol: Function) {
     super();
   }
@@ -107,14 +107,34 @@ export class ComponentOf<T extends Component = Component> extends Query<T> {
   match(entity: Entity): boolean {
     return entity[1].some(component => component instanceof this.symbol);
   }
+
+  /** @returns Set of components that match this query. */
+  components(world: World): T[] {
+    return this.entities(world).reduce(
+      (acc, entity) => {
+        if (Array.isArray(entity) && Array.isArray(entity[1]))
+          entity[1].filter(component => component instanceof this.symbol)
+            .forEach(component => acc.push(component as T));
+        return acc;
+      },
+      [] as T[]
+    );
+  }
 }
 
-/** Fluently construct a world query from a set of `Query` instances. */
-export function query(...queries: Query[]): QueryFn {
-  return function (world) {
-    const entities = Array.from(world.entities.entries());
-    return entities.filter(entity => queries.every(query => query.match(entity)));
-  };
+class AndQuery extends Query {
+  constructor(readonly queries: Query[]) {
+    super();
+  }
+
+  match(entity: Entity): boolean {
+    return this.queries.every(query => query.match(entity));
+  }
+}
+
+/** Fluently construct a world query that matches *all* of the given `Query` instances. */
+export function query(...queries: Query[]): Query {
+  return new AndQuery(queries);
 }
 
 /** Types that are runnable as ECS systems. */
