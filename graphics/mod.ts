@@ -43,7 +43,12 @@ export const enum ShaderStage {
 export @resource class Shader extends Component implements Resource {
   private _module: GPUShaderModule | null = null;
 
-  constructor(readonly stage: ShaderStage, readonly source: string, readonly label?: string) {
+  constructor(
+    readonly stage: ShaderStage,
+    readonly entryPoint: string,
+    readonly source: string,
+    readonly label?: string,
+  ) {
     super();
   }
 

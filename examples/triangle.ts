@@ -23,8 +23,8 @@ class App extends Game {
 
     const triangleShader = await Deno.readTextFile(path.join(import.meta.dirname ?? Deno.cwd(), "triangle.wgsl"));
     const shaders = [
-      new Shader(ShaderStage.vertex, triangleShader),
-      new Shader(ShaderStage.fragment, triangleShader),
+      new Shader(ShaderStage.vertex, "vs", triangleShader),
+      new Shader(ShaderStage.fragment, "fs", triangleShader),
     ];
 
     world.spawn(
