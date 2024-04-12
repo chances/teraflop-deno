@@ -87,12 +87,39 @@ export @resource class Material extends Component implements Resource {
 export type Position = [number, number] | [number, number, number];
 
 /** Vertex attributes. */
-abstract class Vertex {}
+export abstract class Vertex {
+  abstract get vertexLayout(): GPUVertexBufferLayout[];
+  /** @returns The size of this vertex, in bytes. */
+  abstract get size(): number;
+  abstract toArray(): number[];
+}
 
 /** Vertex attributes representing a colored point in 2D or 3D space. */
 export class VertexPosColor extends Vertex {
   constructor(readonly position: Position, readonly color: Color) {
     super();
+  }
+
+  get vertexLayout(): GPUVertexBufferLayout[] {
+    return [{
+      arrayStride: this.size,
+      attributes: [
+        { shaderLocation: 0, offset: 0, format: `float32x${this.position.length}` as GPUVertexFormat },
+        { shaderLocation: 1, offset: this.position.length * 4, format: "float32x4" },
+      ],
+      stepMode: "vertex"
+    }];
+  }
+
+  get size(): number {
+    // Four bytes per position and normal vector component
+    const posSize = this.position.length * 4;
+    return posSize + 16 /* Color: 4 32-bit bytes */;
+  }
+
+  toArray(): number[] {
+    const color = [this.color.r, this.color.g, this.color.b, this.color.a];
+    return this.position.concat(color);
   }
 }
 
@@ -104,11 +131,79 @@ export class VertexPosNormalColor extends Vertex {
       "A vertex position and normal must be in the same coordinate space."
     );
   }
+
+  get vertexLayout(): GPUVertexBufferLayout[] {
+    return [{
+      arrayStride: this.size,
+      attributes: [
+        { shaderLocation: 0, offset: 0, format: `float32x${this.position.length}` as GPUVertexFormat },
+        { shaderLocation: 1, offset: this.position.length * 4, format: `float32x${this.normal.length}` as GPUVertexFormat },
+        { shaderLocation: 2, offset: (this.position.length * 4) + (this.normal.length * 4), format: "float32x4" },
+      ],
+      stepMode: "vertex"
+    }];
+  }
+
+  get size(): number {
+    // Four bytes per position and normal vector component
+    const posSize = this.position.length * 4;
+    const normalSize = this.normal.length * 4;
+    return posSize + normalSize + 16 /* Color: 4 32-bit bytes */;
+  }
+
+  toArray(): number[] {
+    const color = [this.color.r, this.color.g, this.color.b, this.color.a];
+    return this.position.concat(this.normal, color);
+  }
 }
 
-export class Mesh<T extends Vertex> extends Component {
+export @resource class Mesh<T extends Vertex = Vertex> extends Component implements Resource {
+  private _vertexBuffer: GPUBuffer | null = null;
+  private _indexBuffer: GPUBuffer | null = null;
+
   constructor(readonly vertices: T[], readonly indices: number[]) {
+    if (vertices.length === 0) throw new Error("A mesh must contain vertices.");
+    if (indices.length === 0) throw new Error("A mesh must conain vertex indices.");
     super();
+  }
+
+  get vertexLayout() {
+    return this.vertices[0].vertexLayout;
+  }
+
+  get vertexBuffer() {
+    return this._vertexBuffer;
+  }
+
+  get indexBuffer() {
+    return this._indexBuffer;
+  }
+
+  get initialized(): boolean {
+    return isInitialized(this);
+  }
+
+  initialize(_adapter: GPUAdapter, device: GPUDevice) {
+    // Upload vertices to the GPU
+    const vertexArrayStride = this.vertices[0].size;
+    this._vertexBuffer = device.createBuffer({
+      usage: GPUBufferUsage.VERTEX| GPUBufferUsage.COPY_DST,
+      size: vertexArrayStride * this.vertices.length,
+    });
+    const vertexData = new Float32Array(this._vertexBuffer.size);
+    this.vertices.forEach((vertex, i) => vertexData.set(vertex.toArray(), i * vertexArrayStride))
+    device.queue.writeBuffer(this._vertexBuffer, 0, vertexData);
+
+    // Upload vertex indices to the GPU
+    this._indexBuffer = device.createBuffer({
+      usage: GPUBufferUsage.INDEX| GPUBufferUsage.COPY_DST,
+      size: 4 * this.indices.length,
+    })
+    // FIXME: Use Float16Array for when it's added to Deno/V8
+    const indexData = new Float32Array(this.indices);
+    device.queue.writeBuffer(this._indexBuffer, 0, indexData);
+
+    markInitialized(this);
   }
 }
 
