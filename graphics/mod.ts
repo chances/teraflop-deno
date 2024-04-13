@@ -310,6 +310,12 @@ export class Color {
     return new Color(r / 255, g / 255, b / 255);
   }
 
+  static get black() {
+    return new Color();
+  }
+  static get white() {
+    return new Color(1, 1, 1);
+  }
   static get red() {
     return new Color(1);
   }
@@ -318,6 +324,18 @@ export class Color {
   }
   static get blue() {
     return new Color(0, 0, 1);
+  }
+  static get cyan() {
+    return new Color(0, 1, 1);
+  }
+  static get magenta() {
+    return new Color(1, 0, 1);
+  }
+  static get fuschia() {
+    return new Color(1, 0, 1);
+  }
+  static get yellow() {
+    return new Color(1, 1);
   }
   static get cornflowerBlue() {
     return Color.rgb(100, 149, 237);
