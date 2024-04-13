@@ -1,6 +1,7 @@
 {
   "tasks": {
     "lint": "deno check mod.ts",
+    // Open chrome://inspect
     "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
     "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts"
   },

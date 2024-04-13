@@ -44,6 +44,11 @@ export const enum ShaderStage {
   vertex = "vertex",
   fragment = "fragment",
 }
+
+/**
+ * A WGSL shader.
+ * @see [WebGPU WGSL](https://webgpufundamentals.org/webgpu/lessons/webgpu-wgsl.html) (WebGPU Fundamentals)
+ */
 export @resource class Shader extends Component implements Resource {
   private _module: GPUShaderModule | null = null;
 
@@ -75,6 +80,7 @@ export @resource class Shader extends Component implements Resource {
     markInitialized(this);
   }
 
+  /** @returns The result of introspecting this shader source. */
   async reflect(): WgslReflect {
     const wgsl = await import("npm:wgsl_reflect");
     return new wgsl.WgslReflect(this.source);
