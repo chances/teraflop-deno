@@ -1,3 +1,4 @@
+import RenderLoop, { RealTimeApp, Tick } from "@chances/render-loop";
 import {
   createWindow,
   DwmWindow,
@@ -29,15 +30,14 @@ export * from "./utils.ts";
 
 const SURFACE_FORMAT: GPUTextureFormat = "bgra8unorm";
 
-export default abstract class Game {
+export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
   private _pipelines = new Map<string, Pipeline>();
-  private _active = false;
+  private renderLoop = new RenderLoop(60, this);
   private world = new World();
-  private _time = Time.zero;
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
   private _mainWindow: DwmWindow | null = null;
@@ -58,11 +58,11 @@ export default abstract class Game {
   }
 
   get active() {
-    return this._active;
+    return this.renderLoop.isRunning;
   }
 
-  get time() {
-    return this._time;
+  get time(): Tick {
+    return this.world.resources.get(Tick) ?? Tick.zero(1 / 60);
   }
 
   get windows() {
@@ -125,13 +125,7 @@ export default abstract class Game {
     });
 
     await this.initialize(this.world);
-    this._active = true;
-
-    while (this.active) {
-      // FIXME: There is a massive memory leak, i.e. ~1MB per second
-      this.update();
-      this.render();
-    };
+    this.renderLoop.start();
   }
 
   createWindow(title: string, width: number, height: number) {
@@ -148,7 +142,15 @@ export default abstract class Game {
     uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
   }
 
+  private tick(tick: Tick) {
+    this.world.resources.set(tick);
+    this.update();
+  }
+
   private update() {
+    // FIXME: There is a massive memory leak, i.e. ~1MB per second
+    // See https://denosoar.deno.dev/docs to profile apps
+
     pollEvents();
     // TODO: Make this system opt-in?
     Filter.by(isResource).entities(this.world)

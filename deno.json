@@ -6,5 +6,8 @@
   },
   "fmt": {
     "lineWidth": 120
+  },
+  "imports": {
+    "@chances/render-loop": "jsr:@chances/render-loop@^0.6.0"
   }
 }
