@@ -8,9 +8,12 @@ export function hash(...objects: object[]): string {
   );
 }
 
-// deno-lint-ignore ban-types
-export type SymbolKey<T> = Function | Extract<keyof T, string> | Extract<keyof T, symbol>;
-export function nameof<T>(symbol: SymbolKey<T>) {
+/** Any class constructor. */
+// deno-lint-ignore no-explicit-any
+export type AnyConstructor = new (...args: any[]) => any;
+
+export type SymbolKey<T extends AnyConstructor> = T | Extract<keyof T, string> | Extract<keyof T, symbol>;
+export function nameof<T extends AnyConstructor>(symbol: SymbolKey<T>) {
   if (typeof symbol === "function") return symbol.prototype.name;
   return symbol;
 }
@@ -38,8 +41,7 @@ export function privateProperty(value?: any): PropertyDescriptor {
 }
 
 /** Decorates a class such that its constructor and prototype cannot be mutated. */
-// deno-lint-ignore ban-types
-export function sealed(constructor: Function) {
+export function sealed<T extends AnyConstructor>(constructor: T) {
   Object.seal(constructor);
   Object.seal(constructor.prototype);
 }

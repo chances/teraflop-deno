@@ -1,6 +1,6 @@
 // deno-lint-ignore-file ban-types
 import hashObject from "npm:hash-object@5.0.1";
-import { nameof } from "../utils.ts";
+import { AnyConstructor, nameof } from "../utils.ts";
 
 let lastId = -1;
 
@@ -40,14 +40,14 @@ class Resources {
    * @returns The given `value`. */
   set<T extends object>(value: T): T {
     const key = typeof value === "object"
-      ? nameof<T>(Object.getPrototypeOf(value))
+      ? nameof(Object.getPrototypeOf(value))
       : typeof value;
     this._resources.set(key, value);
     return value;
   }
 
   /** @returns The resource, or `null` if it doesn't exist. */
-  get<T extends object>(symbol: Function): Resource<T> {
+  get<T extends AnyConstructor>(symbol: T): Resource<T> {
     const key = nameof(symbol);
     if (!this._resources.has(key)) return null;
     return this._resources.get(key) as T;
@@ -116,7 +116,7 @@ export class Filter extends Query {
 }
 
 export class ComponentOf<T extends Component = Component> extends Query {
-  constructor(readonly symbol: Function) {
+  constructor(readonly symbol: AnyConstructor) {
     super();
   }
 
