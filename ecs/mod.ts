@@ -34,7 +34,6 @@ export class World {
   }
 }
 
-export type Resource<T> = T | null;
 class Resources {
   readonly _resources = new Map<string, object>();
 
@@ -50,10 +49,10 @@ class Resources {
   }
 
   /** @returns The resource, or `null` if it doesn't exist. */
-  get<T extends AnyConstructor>(symbol: T): Resource<T> {
+  get<T extends AnyConstructor>(symbol: T) {
     const key = nameof(symbol);
     if (!this._resources.has(key)) return null;
-    return this._resources.get(key) as T;
+    return this._resources.get(key)! as InstanceType<T>;
   }
 }
 

@@ -9,7 +9,6 @@ import Game, {
   Material,
   Mesh,
   No,
-  Resource,
   Shader,
   ShaderStage,
   ValidationError,
@@ -21,7 +20,7 @@ ValidationError.abortOnInstantiation = true;
 
 class App extends Game {
   async initialize(world: World) {
-    const input = world.resources.get(Input) as Resource<Input>;
+    const input = world.resources.get(Input);
     input?.map.bind("exit").keyboardPressed(KeyboardKey.escape);
 
     const triangleShader = await Deno.readTextFile(path.join(import.meta.dirname ?? Deno.cwd(), "triangle.wgsl"));
