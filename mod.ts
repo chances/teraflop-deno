@@ -1,5 +1,5 @@
 import * as async from "jsr:@std/async";
-import RenderLoop, { RealTimeApp, Tick } from "@chances/render-loop";
+import RenderLoop, { RealTimeApp, Tick } from "jsr:@chances/render-loop";
 import {
   createWindow,
   DwmWindow,
