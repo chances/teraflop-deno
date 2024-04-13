@@ -2,13 +2,17 @@
   "tasks": {
     "lint": "deno check mod.ts",
     // Open chrome://inspect
-    "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
-    "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts"
+    // "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
+    "debug": "deno run --unstable-ffi --allow-ffi --allow-read --allow-write --allow-env debugger/mod.ts",
+    "triangle": "deno run --unstable-webgpu --unstable-ffi --allow-ffi --allow-net=github.com,objects.githubusercontent.com --allow-read --allow-write --allow-env examples/triangle.ts",
+    // TODO: https://github.com/deno-windowing/wpack?tab=readme-ov-file#readme
+    "pack": "deno compile --location https://snow.llc/teraflop/triangle --unstable-webgpu --unstable-ffi --allow-ffi --allow-read --allow-write --allow-env --no-terminal examples/triangle.ts"
   },
   "fmt": {
     "lineWidth": 120
   },
   "imports": {
     "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0",
+    "jsr:@webview/webview": "jsr:@webview/webview@^0.8.0"
   }
 }
