@@ -1,14 +1,16 @@
 struct Fragment {
-  @builtin(position) pos: vec4f,
-  color: vec4f
+  @builtin(position) position: vec4f,
+  @location(1) color: vec4f
 }
 
 @vertex
 fn vs(@location(0) pos: vec3f, @location(1) color: vec4f) -> Fragment {
-  return Fragment(pos, color);
+  var fragment: Fragment;
+  fragment.color = color;
+  return fragment;
 }
 
 @fragment
-fn fs(frag: Fragment) -> @location(0) vec4f {
-  return frag.color;
+fn fs(fragment: Fragment) -> @location(0) vec4f {
+  return fragment.color;
 }
