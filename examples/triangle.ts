@@ -12,9 +12,12 @@ import Game, {
   Resource,
   Shader,
   ShaderStage,
+  ValidationError,
   VertexPosColor,
   World,
 } from "../mod.ts";
+
+ValidationError.abortOnInstantiation = true;
 
 class App extends Game {
   async initialize(world: World) {

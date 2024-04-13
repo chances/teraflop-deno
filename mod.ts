@@ -1,3 +1,4 @@
+import * as async from "jsr:@std/async";
 import RenderLoop, { RealTimeApp, Tick } from "@chances/render-loop";
 import {
   createWindow,
@@ -14,6 +15,7 @@ import * as graphics from "./graphics/mod.ts";
 import { Color, isResource, Material, Pipeline, Resource } from "./graphics/mod.ts";
 import { ComponentOf } from "./ecs/mod.ts";
 import { Mesh } from "./graphics/mod.ts";
+import { AnyConstructor } from "./utils.ts";
 export type Position = graphics.Position;
 export {
   Color,
@@ -80,7 +82,7 @@ export default abstract class Game implements RealTimeApp {
   }
 
   private unhandledRejection = (e: PromiseRejectionEvent) => {
-    console.log(`${new Date().toUTCString()}: Unhandled Promise Rejection: ${e.reason}`);
+    console.error(`${new Date().toUTCString()}: Unhandled Promise Rejection: ${e.reason}`);
     e.preventDefault();
   };
 
@@ -139,10 +141,10 @@ export default abstract class Game implements RealTimeApp {
     return window;
   }
 
-  private initializeResources(entity: Entity) {
+  private async initializeResources(entity: Entity) {
     const uninitializedResources = (entity[1].filter(isResource) as unknown as Resource[])
       .filter(resource => resource.initialized === false);
-    uninitializedResources.forEach(resource => resource.initialize(this._adapter!, this._device!));
+    await Promise.all(uninitializedResources.map(resource => resource.initialize(this._adapter!, this._device!)));
   }
 
   private tick(tick: Tick) {
@@ -153,6 +155,7 @@ export default abstract class Game implements RealTimeApp {
   private update() {
     // FIXME: There is a massive memory leak, i.e. ~1MB per second
     // See https://denosoar.deno.dev/docs to profile apps
+    // TODO: Use marked sections to instrument game systems (https://deno.land/api@v1.42.3?s=Performance#method_measure_9)
 
     pollEvents();
     // TODO: Make this system opt-in?
@@ -165,24 +168,27 @@ export default abstract class Game implements RealTimeApp {
   private render() {
     // Render the scene in each window
     this._windows.forEach(window => {
-      const renderPassDescriptor = {
-        colorAttachments: [{
-          view: this._contexts.get(window.id)!.getCurrentTexture().createView(),
-          clearValue: this.clearColor,
-          loadOp: "clear" as GPULoadOp,
-          storeOp: "store" as GPUStoreOp,
-        }],
+      const getFrameBuffer = () => this._contexts.get(window.id)!.getCurrentTexture().createView();
+      const clearFrameBuffer = () => {
+        const commandEncoder = this.device!.createCommandEncoder();
+        const passEncoder = commandEncoder.beginRenderPass({
+          colorAttachments: [{
+            view: getFrameBuffer(),
+            clearValue: this.clearColor,
+            loadOp: "clear" as GPULoadOp,
+            storeOp: "store" as GPUStoreOp,
+          }],
+        });
+        passEncoder.end();
+        return commandEncoder.finish();
       };
-
-      const commandEncoder = this.device!.createCommandEncoder();
-      const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-
-      // TODO: Use marked sections to instrument game systems (https://deno.land/api@v1.42.3?s=Performance#method_measure_9)
+      const commandBuffers: GPUCommandBuffer[] = [clearFrameBuffer()];
+      this.device!.pushErrorScope("validation");
 
       // Render each world object given its Mesh and Material
       // TODO: Group entities by Material instances to reduce pipeline switching
       // TODO: Group entities by Mesh instances to perform indexed draws
-      query(new ComponentOf<Mesh>(Mesh), new ComponentOf<Material>(Material)).entities(this.world).forEach(async (entity) => {
+      Promise.all(query(new ComponentOf<Mesh>(Mesh), new ComponentOf<Material>(Material)).entities(this.world).map(async (entity) => {
         const mesh = entity[1].find(c => c instanceof Mesh)! as Mesh;
         const material = entity[1].find(c => c instanceof Material)! as Material;
 
@@ -206,17 +212,38 @@ export default abstract class Game implements RealTimeApp {
           await pipeline.initialize(this._adapter!, this._device!);
           this._pipelines.set(pipelineKey, pipeline);
         }
+        const pipeline = this._pipelines.get(pipelineKey)!.pipeline!;
 
-        passEncoder.setPipeline(this._pipelines.get(pipelineKey)!.pipeline!);
+        // Encode this mesh into a render pass
+        const commandEncoder = this.device!.createCommandEncoder();
+        const passEncoder = commandEncoder.beginRenderPass({
+          colorAttachments: [{
+            view: getFrameBuffer(),
+            loadOp: "load" as GPULoadOp,
+            storeOp: "store" as GPUStoreOp,
+          }],
+        });
+        passEncoder.setPipeline(pipeline);
         passEncoder.setVertexBuffer(0, mesh.vertexBuffer!);
         passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
         passEncoder.draw(mesh.vertices.length);
+        commandEncoder.insertDebugMarker(`Drawn entity: ${this.world.entityId(entity)}`);
+        passEncoder.end();
+        commandBuffers.push(commandEncoder.finish());
+      })).catch((err: Error | unknown) => {
+        if (err instanceof Error && err.name === "OperationError") throw new ValidationError(
+          `Could not render entities: ${err.message}`,
+          { cause: err },
+        );
       });
 
-      passEncoder.end();
-
-      this.device!.queue.submit([commandEncoder.finish()]);
+      // Submit the aggregated command buffers
+      this.device!.queue.submit(commandBuffers);
+      // Swap frame buffers
       this._surfaces.get(window.id)!.present();
+      this.device!.popErrorScope()?.then(err => {
+        if (err) throw new ValidationError(err.message);
+      });
     });
   }
 
@@ -231,10 +258,34 @@ export default abstract class Game implements RealTimeApp {
   }
 }
 
-export class Time {
-  constructor(readonly now = 0) {}
+export interface ValidationErrorOptions {
+  /** Source class of this validation error. */
+  source?: AnyConstructor;
+  // deno-lint-ignore no-explicit-any
+  details?: any;
+}
 
-  static get zero() {
-    return new Time();
+/** An error validating GPU state. */
+export class ValidationError extends Error {
+  constructor (message?: string, options?: ErrorOptions & ValidationErrorOptions) {
+    const source = options?.source ? `${options.source.name}: ` : "";
+    super(`Validation Error: ${source}${message}`, options);
+    // Delay until the next event loop iteration to let Deno's WebGPU implementation log its related errors.
+    if (ValidationError.abortOnInstantiation) async.delay(0).then(() => {
+      console.error(this.message);
+      if (options?.details) console.debug(options.details);
+      Deno.exit(1);
+    });
+  }
+
+  /** Whether Deno will abort when GPU any validation error is instantiated. */
+  static get abortOnInstantiation() {
+    // deno-lint-ignore no-explicit-any
+    return (ValidationError as any)[Symbol.for("abortOnValidationError")] ?? false;
+  }
+
+  static set abortOnInstantiation(value: boolean) {
+    // deno-lint-ignore no-explicit-any
+    (ValidationError as any)[Symbol.for("abortOnValidationError")] = value;
   }
 }

@@ -1,6 +1,5 @@
-// deno-lint-ignore-file ban-types
 import hashObject from "npm:hash-object@5.0.1";
-import { AnyConstructor, nameof } from "../utils.ts";
+import { AnyConstructor, hash, nameof } from "../utils.ts";
 
 let lastId = -1;
 
@@ -8,6 +7,10 @@ export class World {
   readonly resources = Object.seal(new Resources());
   readonly entities = new Map<number, Component[]>();
   readonly _tags = new Map<number, string[]>();
+
+  entityId(entity: Entity) {
+    return hash(entity[1]);
+  }
 
   tag(entity: Entity, label: string) {
     if (!this._tags.has(entity[0])) this._tags.get(entity[0])?.push(label);

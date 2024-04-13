@@ -1,10 +1,12 @@
-import { Component, constantProperty, privateProperty } from "../mod.ts";
+import type { WgslReflect } from "npm:wgsl_reflect";
+
+import { Component, ValidationError, constantProperty, privateProperty } from "../mod.ts";
 import { AnyConstructor } from "../utils.ts";
 
 /** A graphics resource with data to initialize in GPU memory. */
 export interface Resource {
   initialized: boolean;
-  initialize(adapter: GPUAdapter, device: GPUDevice): void;
+  initialize(adapter: GPUAdapter, device: GPUDevice): Promise<void>;
 }
 
 /**
@@ -54,20 +56,28 @@ export @resource class Shader extends Component implements Resource {
     super();
   }
 
-  get initialized(): boolean {
-    return isInitialized(this);
-  }
-
   get module() {
     return this._module;
   }
 
-  initialize(_adapter: GPUAdapter, device: GPUDevice): void {
+  get initialized(): boolean {
+    return isInitialized(this);
+  }
+
+  async initialize(_adapter: GPUAdapter, device: GPUDevice): Promise<void> {
+    device.pushErrorScope("validation");
     this._module = device.createShaderModule({
       code: this.source,
       label: this.label
     });
+    const err = await device.popErrorScope();
+    if (err) throw new ValidationError(err.message, { details: await this.reflect() });
     markInitialized(this);
+  }
+
+  async reflect(): WgslReflect {
+    const wgsl = await import("npm:wgsl_reflect");
+    return new wgsl.WgslReflect(this.source);
   }
 }
 
@@ -76,11 +86,20 @@ export @resource class Material extends Component implements Resource {
     super();
   }
 
+  get vertexShader() {
+    return this.shaders.find(shader => shader.stage === ShaderStage.vertex);
+  }
+
+  get fragmentShader() {
+    return this.shaders.find(shader => shader.stage === ShaderStage.fragment);
+  }
+
   get initialized(): boolean {
     return isInitialized(this);
   }
 
-  initialize(adapter: GPUAdapter, device: GPUDevice): void {
+  // deno-lint-ignore require-await
+  async initialize(adapter: GPUAdapter, device: GPUDevice) {
     this.shaders.forEach(shader => shader.initialize(adapter, device));
     markInitialized(this);
   }
@@ -109,7 +128,7 @@ export class VertexPosColor extends Vertex {
         { shaderLocation: 0, offset: 0, format: `float32x${this.position.length}` as GPUVertexFormat },
         { shaderLocation: 1, offset: this.position.length * 4, format: "float32x4" },
       ],
-      stepMode: "vertex"
+      // FIXME: stepMode: "vertex"
     }];
   }
 
@@ -142,7 +161,7 @@ export class VertexPosNormalColor extends Vertex {
         { shaderLocation: 1, offset: this.position.length * 4, format: `float32x${this.normal.length}` as GPUVertexFormat },
         { shaderLocation: 2, offset: (this.position.length * 4) + (this.normal.length * 4), format: "float32x4" },
       ],
-      stepMode: "vertex"
+      // FIXME: stepMode: "vertex"
     }];
   }
 
@@ -185,7 +204,8 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
     return isInitialized(this);
   }
 
-  initialize(_adapter: GPUAdapter, device: GPUDevice) {
+  // deno-lint-ignore require-await
+  async initialize(_adapter: GPUAdapter, device: GPUDevice) {
     // Upload vertices to the GPU
     const vertexArrayStride = this.vertices[0].size;
     this._vertexBuffer = device.createBuffer({
@@ -234,6 +254,7 @@ export @resource class Pipeline extends Component implements Resource {
     const vs = this.material.shaders.find(shader => shader.stage === ShaderStage.vertex)!;
     const fs = this.material.shaders.find(shader => shader.stage === ShaderStage.fragment)!;
 
+    device.pushErrorScope("validation");
     this._pipeline = await device.createRenderPipelineAsync({
       layout: "auto",
       label: this.label,
@@ -258,7 +279,21 @@ export @resource class Pipeline extends Component implements Resource {
         depthWriteEnabled: true
       } : undefined
     });
-    markInitialized(this);
+    const err = await device.popErrorScope();
+    if (!err) return markInitialized(this);
+
+    const vertexShader: WgslReflect | null = await (
+      this.material.vertexShader?.reflect() ?? Promise.resolve(null)
+    );
+    // TODO: Reflect on the fragment shader with complex pipelines
+    console.debug("Expected vertex layout:", vertexShader.entry.vertex[0].inputs);
+    console.debug("Observed vertex layout:", this.vertexBufferLayout);
+    if (ValidationError.abortOnInstantiation) Deno.exit(1);
+    throw new ValidationError(`Pipeline: ${err.message}`)
+  }
+
+  getBindGroupLayout(index: number) {
+    return this._pipeline?.getBindGroupLayout(index) ?? null;
   }
 }
 

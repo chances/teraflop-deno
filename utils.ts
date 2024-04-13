@@ -1,9 +1,9 @@
 import hashObject from "npm:hash-object@5.0.1";
 
-export function hash(...objects: object[]): string {
+export function hash(obj: object | object[], ...objects: object[]): string {
   return hashObject(
     // deno-lint-ignore no-explicit-any
-    objects.reduce((obj, x, i) => ({ ...obj, [i]: x }), {} as Record<number, any>),
+    objects.concat(obj).reduce((obj, x, i) => ({ ...obj, [i]: x }), {} as Record<number, any>),
     { algorithm: 'sha1' }
   );
 }
