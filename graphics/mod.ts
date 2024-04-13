@@ -12,6 +12,7 @@ export interface Resource {
  **/
 // deno-lint-ignore ban-types, no-explicit-any
 export function resource(constructor: Function, _: any) {
+  // TODO: Use Symbols for these properties (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
   Object.defineProperty(constructor.prototype, "isResource", constantProperty(true));
   Object.defineProperty(constructor.prototype, "_initialized", privateProperty());
 }

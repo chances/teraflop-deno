@@ -174,6 +174,8 @@ export default abstract class Game implements RealTimeApp {
       const commandEncoder = this.device!.createCommandEncoder();
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
 
+      // TODO: Use marked sections to instrument game systems (https://deno.land/api@v1.42.3?s=Performance#method_measure_9)
+
       // Render each world object given its Mesh and Material
       // TODO: Group entities by Material instances to reduce pipeline switching
       // TODO: Group entities by Mesh instances to perform indexed draws

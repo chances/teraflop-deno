@@ -44,6 +44,7 @@ export function sealed(constructor: Function) {
   Object.seal(constructor.prototype);
 }
 
+// TODO: Use a `Proxy` to map *any* property to `false`.
 export const No = Object.seal({
   depthTest: false
 });
