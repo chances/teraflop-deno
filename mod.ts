@@ -79,11 +79,14 @@ export default abstract class Game implements RealTimeApp {
     this._systems.push(system);
   }
 
+  private unhandledRejection = (e: PromiseRejectionEvent) => {
+    console.log(`${new Date().toUTCString()}: Unhandled Promise Rejection: ${e.reason}`);
+    e.preventDefault();
+  };
+
   async run() {
-    globalThis.addEventListener("unhandledrejection", (e) => {
-      console.log(`${Date.now()}: ${e.reason}`);
-      e.preventDefault();
-    });
+    // TODO: Remove this event listener when the render loop finishes
+    globalThis.addEventListener("unhandledrejection", this.unhandledRejection);
 
     this._adapter = await navigator.gpu.requestAdapter({
       powerPreference: "low-power",
