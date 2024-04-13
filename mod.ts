@@ -133,6 +133,11 @@ export default abstract class Game implements RealTimeApp {
     this.renderLoop.start();
   }
 
+  tick(tick: Tick) {
+    this.world.resources.set(tick);
+    this.update();
+  }
+
   createWindow(title: string, width: number, height: number) {
     const window = createWindow({ title: title, width, height, resizable: true, vsync: true });
     const monitor = getPrimaryMonitor();
@@ -145,11 +150,6 @@ export default abstract class Game implements RealTimeApp {
     const uninitializedResources = (entity[1].filter(isResource) as unknown as Resource[])
       .filter(resource => resource.initialized === false);
     await Promise.all(uninitializedResources.map(resource => resource.initialize(this._adapter!, this._device!)));
-  }
-
-  private tick(tick: Tick) {
-    this.world.resources.set(tick);
-    this.update();
   }
 
   private update() {
@@ -165,7 +165,7 @@ export default abstract class Game implements RealTimeApp {
     this._systems.forEach(system => system.run());
   }
 
-  private render() {
+  render() {
     // Render the scene in each window
     this._windows.forEach(window => {
       const getFrameBuffer = () => this._contexts.get(window.id)!.getCurrentTexture().createView();
@@ -241,6 +241,7 @@ export default abstract class Game implements RealTimeApp {
       this.device!.queue.submit(commandBuffers);
       // Swap frame buffers
       this._surfaces.get(window.id)!.present();
+      // Handle validation errors
       this.device!.popErrorScope()?.then(err => {
         if (err) throw new ValidationError(err.message);
       });

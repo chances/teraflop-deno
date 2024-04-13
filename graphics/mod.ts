@@ -81,7 +81,7 @@ export @resource class Shader extends Component implements Resource {
   }
 
   /** @returns The result of introspecting this shader source. */
-  async reflect(): WgslReflect {
+  async reflect(): Promise<WgslReflect> {
     const wgsl = await import("npm:wgsl_reflect");
     return new wgsl.WgslReflect(this.source);
   }
@@ -256,7 +256,7 @@ export @resource class Pipeline extends Component implements Resource {
     return isInitialized(this);
   }
 
-  async initialize(_adapter: GPUAdapter, device: GPUDevice) {
+  async initialize(_adapter: GPUAdapter, device: GPUDevice): Promise<void> {
     const vs = this.material.shaders.find(shader => shader.stage === ShaderStage.vertex)!;
     const fs = this.material.shaders.find(shader => shader.stage === ShaderStage.fragment)!;
 
@@ -292,7 +292,7 @@ export @resource class Pipeline extends Component implements Resource {
       this.material.vertexShader?.reflect() ?? Promise.resolve(null)
     );
     // TODO: Reflect on the fragment shader with complex pipelines
-    console.debug("Expected vertex layout:", vertexShader.entry.vertex[0].inputs);
+    console.debug("Expected vertex layout:", vertexShader?.entry.vertex[0].inputs ?? []);
     console.debug("Observed vertex layout:", this.vertexBufferLayout);
     if (ValidationError.abortOnInstantiation) Deno.exit(1);
     throw new ValidationError(`Pipeline: ${err.message}`)

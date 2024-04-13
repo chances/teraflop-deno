@@ -9,6 +9,6 @@
     "lineWidth": 120
   },
   "imports": {
-    "@chances/render-loop": "jsr:@chances/render-loop@^0.6.0"
+    "@chances/render-loop": "jsr:@chances/render-loop@^0.7.0"
   }
 }
