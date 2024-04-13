@@ -87,6 +87,36 @@ export @resource class Shader extends Component implements Resource {
   }
 }
 
+export @resource class Texture extends Component implements Resource {
+  readonly descriptor: GPUTextureDescriptor;
+  private _texture: GPUTexture | null = null;
+
+  // TODO: Add an overload to supply data (See https://jsr.io/@std/webgpu/doc/~/createTextureWithData)
+  /** @param usage Bitmask of `GPUTextureUsage`. */
+  constructor(format: GPUTextureFormat, size: GPUExtent3D, usage: number) {
+    super();
+    this.descriptor = {
+      format,
+      size,
+      usage
+    };
+  }
+
+  get texture() {
+    return this._texture;
+  }
+
+  get initialized(): boolean {
+    return isInitialized(this);
+  }
+
+  // deno-lint-ignore require-await
+  async initialize(_adapter: GPUAdapter, device: GPUDevice) {
+    this._texture = device.createTexture(this.descriptor);
+    markInitialized(this);
+  }
+}
+
 export @resource class Material extends Component implements Resource {
   constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
     super();
