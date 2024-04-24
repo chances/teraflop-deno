@@ -58,6 +58,12 @@ export default abstract class Game implements RealTimeApp {
     return this._device;
   }
 
+  get gpuInfo() {
+    // Unmask GPU device info
+    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
+    return this._adapter.requestAdapterInfo(["vendor", "device", "description"]);
+  }
+
   get active() {
     return this.renderLoop.isRunning;
   }
@@ -93,7 +99,6 @@ export default abstract class Game implements RealTimeApp {
       powerPreference: "low-power",
     });
     if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
-    this._adapter.requestAdapterInfo().then(console.log);
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
       requiredLimits: {
