@@ -30,8 +30,6 @@ export {
 } from "./graphics/mod.ts";
 export * from "./utils.ts";
 
-const SURFACE_FORMAT: GPUTextureFormat = "bgra8unorm";
-
 export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;
   private _device: GPUDevice | null = null;
@@ -43,6 +41,7 @@ export default abstract class Game implements RealTimeApp {
   limitFrameRate = false;
   private _windows: DwmWindow[] = [];
   private _mainWindow: DwmWindow | null = null;
+  private readonly preferredSurfaceFormat = navigator.gpu.getPreferredCanvasFormat();
   private _inputMaps = new Map<string, Input>();
   private _systems: System[] = [];
 
@@ -57,6 +56,12 @@ export default abstract class Game implements RealTimeApp {
 
   get device() {
     return this._device;
+  }
+
+  get gpuInfo() {
+    // Unmask GPU device info
+    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
+    return this._adapter.requestAdapterInfo(["vendor", "device", "description"]);
   }
 
   get active() {
@@ -94,7 +99,6 @@ export default abstract class Game implements RealTimeApp {
       powerPreference: "low-power",
     });
     if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
-    this._adapter.requestAdapterInfo().then(console.log);
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
       requiredLimits: {
@@ -196,7 +200,7 @@ export default abstract class Game implements RealTimeApp {
         // Create a render pipeline for each material
         if (!this._pipelines.has(pipelineKey)) {
           const pipeline = new Pipeline(material, mesh.vertexLayout, [{
-            format: SURFACE_FORMAT,
+            format: this.preferredSurfaceFormat,
             // TODO: Extract this to the Material class
             blend: {
               color: {
@@ -250,12 +254,8 @@ export default abstract class Game implements RealTimeApp {
 
   private resizeGpuSurface(window: DwmWindow, device: GPUDevice) {
     const { width, height } = window.framebufferSize;
-    this._contexts.get(window.id)?.configure({
-      device,
-      format: SURFACE_FORMAT,
-      width,
-      height,
-    });
+    const format = this.preferredSurfaceFormat;
+    this._contexts.get(window.id)?.configure({ device, format, width, height });
   }
 }
 
