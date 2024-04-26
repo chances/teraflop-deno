@@ -101,7 +101,7 @@ export default abstract class Game implements RealTimeApp {
     this._adapter = await navigator.gpu.requestAdapter({
       powerPreference: "low-power",
     });
-    if (!this._adapter) throw Error("Could not acquire a WebGPU adapter.");
+    if (!this._adapter) throw Error("Could not acquire a suitable WebGPU adapter.");
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
       requiredLimits: {
@@ -120,6 +120,7 @@ export default abstract class Game implements RealTimeApp {
         maxComputeWorkgroupSizeZ: 0,
       },
     });
+    if (!this._device) throw Error("Could not acquire a suitable WebGPU device.");
 
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
