@@ -41,9 +41,7 @@ class Resources {
    * Adds or replaces the given `value` from this set of resources.
    * @returns The given `value`. */
   set<T extends object>(value: T): T {
-    const key = typeof value === "object"
-      ? nameof(Object.getPrototypeOf(value))
-      : typeof value;
+    const key = typeof value === "object" ? nameof(Object.getPrototypeOf(value)) : typeof value;
     this._resources.set(key, value);
     return value;
   }
@@ -61,7 +59,7 @@ export type Entity = [number, Component[]];
 export abstract class Component {
   /** @returns A SHA-1 hash of this component. */
   get hash(): string {
-    return hashObject(this, {algorithm: 'sha1'});
+    return hashObject(this, { algorithm: "sha1" });
   }
 }
 
@@ -79,7 +77,7 @@ function composeQuery<T = Entity, U = Entity>(query: Query<T>, callback: (value:
     override entities(world: World) {
       return query.entities(world).map((x, i, arr) => callback(x, i, arr));
     }
-  }
+  };
 }
 
 export abstract class Query<E = Entity> {
@@ -87,8 +85,8 @@ export abstract class Query<E = Entity> {
 
   /** @returns Set of entities that match this query. */
   entities(world: World): E[] {
-    const matches =  Array.from(world.entities.entries())
-      .filter(entity => this.match(entity)) as Entity[];
+    const matches = Array.from(world.entities.entries())
+      .filter((entity) => this.match(entity)) as Entity[];
     return matches as E[];
   }
 
@@ -123,19 +121,20 @@ export class ComponentOf<T extends Component = Component> extends Query {
   }
 
   match(entity: Entity): boolean {
-    return entity[1].some(component => component instanceof this.symbol);
+    return entity[1].some((component) => component instanceof this.symbol);
   }
 
   /** @returns Set of components that match this query. */
   components(world: World): T[] {
     return this.entities(world).reduce(
       (acc, entity) => {
-        if (Array.isArray(entity) && Array.isArray(entity[1]))
-          entity[1].filter(component => component instanceof this.symbol)
-            .forEach(component => acc.push(component as T));
+        if (Array.isArray(entity) && Array.isArray(entity[1])) {
+          entity[1].filter((component) => component instanceof this.symbol)
+            .forEach((component) => acc.push(component as T));
+        }
         return acc;
       },
-      [] as T[]
+      [] as T[],
     );
   }
 }
@@ -146,7 +145,7 @@ class AndQuery extends Query {
   }
 
   match(entity: Entity): boolean {
-    return this.queries.every(query => query.match(entity));
+    return this.queries.every((query) => query.match(entity));
   }
 }
 

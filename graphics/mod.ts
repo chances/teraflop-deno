@@ -1,6 +1,6 @@
 import type { WgslReflect } from "npm:wgsl_reflect";
 
-import { Component, ValidationError, constantProperty, privateProperty } from "../mod.ts";
+import { Component, constantProperty, privateProperty, ValidationError } from "../mod.ts";
 import { AnyConstructor } from "../utils.ts";
 
 /** A graphics resource with data to initialize in GPU memory. */
@@ -12,7 +12,7 @@ export interface Resource {
 /**
  * Decorates a class as a GPU resource.
  * @see `Resource`
- **/
+ */
 // deno-lint-ignore no-explicit-any
 export function resource<T extends AnyConstructor>(constructor: T, _: any) {
   // TODO: Use Symbols for these properties (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
@@ -24,7 +24,7 @@ export function resource<T extends AnyConstructor>(constructor: T, _: any) {
  * @returns Whether the given component is a GPU resource.
  * @see `Resource`
  * @see `resource` class decorator.
- **/
+ */
 export function isResource(component: Component): boolean {
   // deno-lint-ignore no-explicit-any
   return (component as any)["isResource"] === true;
@@ -49,7 +49,8 @@ export const enum ShaderStage {
  * A WGSL shader.
  * @see [WebGPU WGSL](https://webgpufundamentals.org/webgpu/lessons/webgpu-wgsl.html) (WebGPU Fundamentals)
  */
-export @resource class Shader extends Component implements Resource {
+@resource
+export class Shader extends Component implements Resource {
   private _module: GPUShaderModule | null = null;
 
   constructor(
@@ -73,7 +74,7 @@ export @resource class Shader extends Component implements Resource {
     device.pushErrorScope("validation");
     this._module = device.createShaderModule({
       code: this.source,
-      label: this.label
+      label: this.label,
     });
     const err = await device.popErrorScope();
     if (err) throw new ValidationError(err.message, { details: await this.reflect() });
@@ -87,17 +88,18 @@ export @resource class Shader extends Component implements Resource {
   }
 }
 
-export @resource class Material extends Component implements Resource {
+@resource
+export class Material extends Component implements Resource {
   constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
     super();
   }
 
   get vertexShader() {
-    return this.shaders.find(shader => shader.stage === ShaderStage.vertex);
+    return this.shaders.find((shader) => shader.stage === ShaderStage.vertex);
   }
 
   get fragmentShader() {
-    return this.shaders.find(shader => shader.stage === ShaderStage.fragment);
+    return this.shaders.find((shader) => shader.stage === ShaderStage.fragment);
   }
 
   get initialized(): boolean {
@@ -106,7 +108,7 @@ export @resource class Material extends Component implements Resource {
 
   // deno-lint-ignore require-await
   async initialize(adapter: GPUAdapter, device: GPUDevice) {
-    this.shaders.forEach(shader => shader.initialize(adapter, device));
+    this.shaders.forEach((shader) => shader.initialize(adapter, device));
     markInitialized(this);
   }
 }
@@ -154,9 +156,11 @@ export class VertexPosColor extends Vertex {
 export class VertexPosNormalColor extends Vertex {
   constructor(readonly position: Position, readonly normal: Position, readonly color: Color) {
     super();
-    if (position.length !== normal.length) throw new Error(
-      "A vertex position and normal must be in the same coordinate space."
-    );
+    if (position.length !== normal.length) {
+      throw new Error(
+        "A vertex position and normal must be in the same coordinate space.",
+      );
+    }
   }
 
   get vertexLayout(): GPUVertexBufferLayout[] {
@@ -164,7 +168,11 @@ export class VertexPosNormalColor extends Vertex {
       arrayStride: this.size,
       attributes: [
         { shaderLocation: 0, offset: 0, format: `float32x${this.position.length}` as GPUVertexFormat },
-        { shaderLocation: 1, offset: this.position.length * 4, format: `float32x${this.normal.length}` as GPUVertexFormat },
+        {
+          shaderLocation: 1,
+          offset: this.position.length * 4,
+          format: `float32x${this.normal.length}` as GPUVertexFormat,
+        },
         { shaderLocation: 2, offset: (this.position.length * 4) + (this.normal.length * 4), format: "float32x4" },
       ],
       // FIXME: stepMode: "vertex"
@@ -184,7 +192,8 @@ export class VertexPosNormalColor extends Vertex {
   }
 }
 
-export @resource class Mesh<T extends Vertex = Vertex> extends Component implements Resource {
+@resource
+export class Mesh<T extends Vertex = Vertex> extends Component implements Resource {
   private _vertexBuffer: GPUBuffer | null = null;
   private _indexBuffer: GPUBuffer | null = null;
 
@@ -220,11 +229,11 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
     // Upload vertices to the GPU
     const vertexArrayStride = this.vertices[0].size;
     this._vertexBuffer = device.createBuffer({
-      usage: GPUBufferUsage.VERTEX| GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       size: vertexArrayStride * this.vertices.length,
     });
     const vertexData = new Float32Array(this._vertexBuffer.size);
-    this.vertices.forEach((vertex, i) => vertexData.set(vertex.toArray(), i * vertexArrayStride))
+    this.vertices.forEach((vertex, i) => vertexData.set(vertex.toArray(), i * vertexArrayStride));
     device.queue.writeBuffer(this._vertexBuffer, 0, vertexData);
 
     // Short-circut if this is not an indexed mesh
@@ -232,9 +241,9 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
 
     // Upload vertex indices to the GPU
     this._indexBuffer = device.createBuffer({
-      usage: GPUBufferUsage.INDEX| GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       size: 4 * this.indices.length,
-    })
+    });
     // FIXME: Use Float16Array for when it's added to Deno/V8
     const indexData = new Float32Array(this.indices);
     device.queue.writeBuffer(this._indexBuffer, 0, indexData);
@@ -243,7 +252,8 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
   }
 }
 
-export @resource class Pipeline extends Component implements Resource {
+@resource
+export class Pipeline extends Component implements Resource {
   private _pipeline: GPURenderPipeline | null = null;
 
   constructor(
@@ -265,8 +275,8 @@ export @resource class Pipeline extends Component implements Resource {
   }
 
   async initialize(_adapter: GPUAdapter, device: GPUDevice): Promise<void> {
-    const vs = this.material.shaders.find(shader => shader.stage === ShaderStage.vertex)!;
-    const fs = this.material.shaders.find(shader => shader.stage === ShaderStage.fragment)!;
+    const vs = this.material.shaders.find((shader) => shader.stage === ShaderStage.vertex)!;
+    const fs = this.material.shaders.find((shader) => shader.stage === ShaderStage.fragment)!;
 
     device.pushErrorScope("validation");
     this._pipeline = await device.createRenderPipelineAsync({
@@ -275,23 +285,25 @@ export @resource class Pipeline extends Component implements Resource {
       primitive: {
         topology: "triangle-list",
         frontFace: "cw",
-        cullMode: "back"
+        cullMode: "back",
       },
       vertex: {
         module: vs.module!,
         entryPoint: vs.entryPoint,
-        buffers: this.vertexBufferLayout
+        buffers: this.vertexBufferLayout,
       },
       fragment: {
         module: fs.module!,
         entryPoint: fs.entryPoint,
-        targets: this.targets
+        targets: this.targets,
       },
-      depthStencil: this.material.depthTest ? {
-        depthCompare: "less-equal",
-        format: this.depthFormat!,
-        depthWriteEnabled: true
-      } : undefined
+      depthStencil: this.material.depthTest
+        ? {
+          depthCompare: "less-equal",
+          format: this.depthFormat!,
+          depthWriteEnabled: true,
+        }
+        : undefined,
     });
     const err = await device.popErrorScope();
     if (!err) return markInitialized(this);
@@ -303,7 +315,7 @@ export @resource class Pipeline extends Component implements Resource {
     console.debug("Expected vertex layout:", vertexShader?.entry.vertex[0].inputs ?? []);
     console.debug("Observed vertex layout:", this.vertexBufferLayout);
     if (ValidationError.abortOnInstantiation) Deno.exit(1);
-    throw new ValidationError(`Pipeline: ${err.message}`)
+    throw new ValidationError(`Pipeline: ${err.message}`);
   }
 
   getBindGroupLayout(index: number) {

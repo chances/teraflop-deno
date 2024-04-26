@@ -10,7 +10,7 @@ export const enum KeyboardKey {
   arrowLeft = "ArrowLeft",
   arrowRight = "ArrowRight",
   arrowUp = "ArrowUp",
-  end ="End",
+  end = "End",
   home = "Home",
   pageDown = "PageDown",
   pageUp = "PageUp",
@@ -52,7 +52,7 @@ export class Input {
 }
 
 export class InputMap {
-  constructor (private input: Input) {}
+  constructor(private input: Input) {}
 
   bind(action: string) {
     return new InputMapBuilder(this.input);
@@ -60,7 +60,7 @@ export class InputMap {
 }
 
 export class InputMapBuilder {
-  constructor (private input: Input) {}
+  constructor(private input: Input) {}
 
   keyboardPressed(key: KeyboardKey) {}
   keyboardHeld(key: KeyboardKey) {}
