@@ -188,9 +188,9 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
   private _vertexBuffer: GPUBuffer | null = null;
   private _indexBuffer: GPUBuffer | null = null;
 
-  constructor(readonly vertices: T[], readonly indices: number[]) {
+  constructor(readonly vertices: T[], readonly indices: number[] = []) {
     if (vertices.length === 0) throw new Error("A mesh must contain vertices.");
-    if (indices.length === 0) throw new Error("A mesh must conain vertex indices.");
+    if (indices.length && indices.length < 3) throw new Error("An indexed mesh must conain vertex indices.");
     super();
   }
 
@@ -206,12 +206,17 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
     return this._indexBuffer;
   }
 
+  /** @returns Whether this is an indexed mesh, i.e. this mesh includes index data. */
+  get isIndexed() {
+    return this.indices.length > 0;
+  }
+
   get initialized(): boolean {
     return isInitialized(this);
   }
 
   // deno-lint-ignore require-await
-  async initialize(_adapter: GPUAdapter, device: GPUDevice) {
+  async initialize(_adapter: GPUAdapter, device: GPUDevice): Promise<void> {
     // Upload vertices to the GPU
     const vertexArrayStride = this.vertices[0].size;
     this._vertexBuffer = device.createBuffer({
@@ -221,6 +226,9 @@ export @resource class Mesh<T extends Vertex = Vertex> extends Component impleme
     const vertexData = new Float32Array(this._vertexBuffer.size);
     this.vertices.forEach((vertex, i) => vertexData.set(vertex.toArray(), i * vertexArrayStride))
     device.queue.writeBuffer(this._vertexBuffer, 0, vertexData);
+
+    // Short-circut if this is not an indexed mesh
+    if (!this.isIndexed) return markInitialized(this);
 
     // Upload vertex indices to the GPU
     this._indexBuffer = device.createBuffer({

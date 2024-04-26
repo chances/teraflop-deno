@@ -232,8 +232,9 @@ export default abstract class Game implements RealTimeApp {
           }],
         });
         passEncoder.setPipeline(pipeline);
+        // TODO: Make the vertex buffer optional, e.g. for static triangle or quad shaders
         passEncoder.setVertexBuffer(0, mesh.vertexBuffer!);
-        passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
+        if (mesh.isIndexed) passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
         passEncoder.draw(mesh.vertices.length);
         commandEncoder.insertDebugMarker(`Drawn entity: ${this.world.entityId(entity)}`);
         passEncoder.end();
