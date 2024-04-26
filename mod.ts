@@ -58,10 +58,13 @@ export default abstract class Game implements RealTimeApp {
     return this._device;
   }
 
+  /** @rejects When the GPU adapter is unavailable. */
   get gpuInfo() {
     // Unmask GPU device info
     // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
-    return this._adapter.requestAdapterInfo(["vendor", "device", "description"]);
+    return this._adapter?.requestAdapterInfo(["vendor", "device", "description"]) ?? Promise.reject(new Error(
+      "GPU adapter is not available."
+    ));
   }
 
   get active() {
