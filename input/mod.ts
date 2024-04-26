@@ -54,6 +54,7 @@ export class Input {
 export class InputMap {
   constructor(private input: Input) {}
 
+  // deno-lint-ignore no-unused-vars
   bind(action: string) {
     return new InputMapBuilder(this.input);
   }
@@ -62,7 +63,10 @@ export class InputMap {
 export class InputMapBuilder {
   constructor(private input: Input) {}
 
+  // deno-lint-ignore no-unused-vars
   keyboardPressed(key: KeyboardKey) {}
+  // deno-lint-ignore no-unused-vars
   keyboardHeld(key: KeyboardKey) {}
+  // deno-lint-ignore no-unused-vars
   keyboardReleased(key: KeyboardKey) {}
 }

@@ -1,4 +1,5 @@
 import type { WgslReflect } from "npm:wgsl_reflect";
+// TODO: import { vec3 } from "npm:wgpu-matrix@2.8.0";
 
 import { Component, constantProperty, privateProperty, ValidationError } from "../mod.ts";
 import { AnyConstructor } from "../utils.ts";

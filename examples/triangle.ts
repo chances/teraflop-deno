@@ -1,7 +1,6 @@
 #!/usr/bin/env deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env
 import { assert } from "jsr:@std/assert";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
-import { vec3 } from "npm:wgpu-matrix@2.8.0";
 
 import Game, {
   Color,
@@ -30,7 +29,7 @@ class App extends Game {
       new Shader(ShaderStage.fragment, "fs", triangleShader),
     ];
 
-    let triangle = new Mesh<VertexPosColor>([
+    const triangle = new Mesh<VertexPosColor>([
       new VertexPosColor([0.0, -0.5, 0], Color.red),
       new VertexPosColor([0.5, 0.5, 0], Color.green),
       new VertexPosColor([-0.5, 0.5, 0], Color.blue),
