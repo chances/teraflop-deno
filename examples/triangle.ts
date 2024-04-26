@@ -41,4 +41,4 @@ class App extends Game {
 }
 
 // See https://deno.land/manual/examples/module_metadata#concepts
-if (import.meta.main) new App("WebGPU").run();
+if (import.meta.main) new App("WebGPU Triangle").run();
