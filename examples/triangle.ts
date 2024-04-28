@@ -4,6 +4,7 @@ import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 
 import Game, {
   Color,
+  CullMode,
   FrontFace,
   Input,
   KeyboardKey,
@@ -39,8 +40,9 @@ class App extends Game {
     world.spawn(
       new Material(shaders, {
         primitiveState: {
-          frontFace: FrontFace.clockwise,
+          frontFace: FrontFace.counterClockwise,
           topology: Topology.triangleList,
+          cullMode: CullMode.none
         },
         depthTest: false,
       }),
