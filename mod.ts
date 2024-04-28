@@ -14,12 +14,15 @@ import { AnyConstructor } from "./utils.ts";
 export type Position = graphics.Position;
 export {
   Color,
+  CullMode,
+  FrontFace,
   isResource,
   Material,
   Mesh,
   Pipeline,
   Shader,
   ShaderStage,
+  Topology,
   VertexPosColor,
   VertexPosNormalColor,
 } from "./graphics/mod.ts";

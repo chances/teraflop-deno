@@ -89,10 +89,42 @@ export class Shader extends Component implements Resource {
   }
 }
 
+export enum Topology {
+  pointList = "point-list",
+  lineList = "line-list",
+  lineStrip = "line-strip",
+  triangleList = "triangle-list",
+  triangleStrip = "triangle-strip",
+}
+
+export enum FrontFace {
+  clockwise = "cw",
+  counterClockwise = "ccw",
+}
+
+export enum CullMode {
+  none = "none",
+  front = "front",
+  back = "back",
+}
+
+export interface MaterialOptions {
+  primitiveState?: GPUPrimitiveState;
+  depthTest?: boolean;
+}
+
 @resource
 export class Material extends Component implements Resource {
-  constructor(readonly shaders: Shader[], readonly depthTest: boolean) {
+  /** Whether the depth test is performed. */
+  readonly depthTest: boolean;
+  /** By default, backward-facing faces are culled. */
+  readonly primitiveState: GPUPrimitiveState;
+
+  constructor(readonly shaders: Shader[], options?: MaterialOptions) {
     super();
+
+    this.depthTest = options?.depthTest ?? true;
+    this.primitiveState = options?.primitiveState ?? { cullMode: "back" };
   }
 
   get vertexShader() {
@@ -114,6 +146,7 @@ export class Material extends Component implements Resource {
   }
 }
 
+/** A 2D or 3D vector representing a position is space. */
 export type Position = [number, number] | [number, number, number];
 
 /** Vertex attributes. */
@@ -286,7 +319,7 @@ export class Pipeline extends Component implements Resource {
       primitive: {
         topology: "triangle-list",
         frontFace: "cw",
-        cullMode: "back",
+        ...this.material.primitiveState,
       },
       vertex: {
         module: vs.module!,

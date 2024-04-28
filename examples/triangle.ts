@@ -4,13 +4,14 @@ import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 
 import Game, {
   Color,
+  FrontFace,
   Input,
   KeyboardKey,
   Material,
   Mesh,
-  No,
   Shader,
   ShaderStage,
+  Topology,
   ValidationError,
   VertexPosColor,
   World,
@@ -35,7 +36,16 @@ class App extends Game {
       new VertexPosColor([-0.5, 0.5, 0], Color.blue),
     ]);
     assert(triangle.isIndexed === false, "Mesh is indexed!");
-    world.spawn(new Material(shaders, No.depthTest), triangle);
+    world.spawn(
+      new Material(shaders, {
+        primitiveState: {
+          frontFace: FrontFace.clockwise,
+          topology: Topology.triangleList,
+        },
+        depthTest: false,
+      }),
+      triangle,
+    );
   }
 }
 
