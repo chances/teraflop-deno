@@ -1,4 +1,5 @@
-# Teraflop
+<!-- See https://www.canva.com/design/DAGLqtFH0AE/pYxeGhzf1TnF1WgZA0p9hA/edit?referrer=3d-logos-landing-page -->
+<h1><img src="https://github.com/chances/teraflop-deno/blob/main/assets/Logo%20Narrow%20Dark%20Shadowed.png?raw=true" alt="Teraflop" height="50" /></h1>
 
 An ECS game engine on a [WebGPU](https://webgpu.io) foundation.
 
