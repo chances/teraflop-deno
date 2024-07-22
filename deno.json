@@ -9,6 +9,7 @@
     "lineWidth": 120
   },
   "imports": {
+    "@gnome/ffi": "jsr:@gnome/ffi@^0.0.0-beta-001",
     "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0"
   }
 }
