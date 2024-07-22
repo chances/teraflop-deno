@@ -4,6 +4,7 @@ all:
 .PHONY: ffi
 ffi:
 	dub build -b ffi
+	@rm -rf dox
 
 .PHONY: lint
 lint:
