@@ -10,13 +10,15 @@ void main() {
   const DUB_VERSION = gitRevCmd.status != 0 ? "v0.1.0" : gitRevCmd.output.strip;
 
   auto index = readText("views/index.hbs");
-  write("docs/index.html", index.replace("{{ DUB_VERSION }}", DUB_VERSION));
+  write("docs/index.html", index.replace(
+    "{{ DUB_VERSION }}", DUB_VERSION.replace("v", ""))
+  );
 
   auto documents = dirEntries("docs", SpanMode.depth).filter!(
     entry => entry.isFile && entry.name.endsWith(".html")
   ).map!(entry => entry.name);
 
   foreach (string document; documents) {
-    write(document, document.readText.replace("{{ DUB_VERSION }}", DUB_VERSION));
+    write(document, document.readText.replace("{{ VERSION }}", DUB_VERSION));
   }
 }

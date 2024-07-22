@@ -1,6 +1,6 @@
 {
 	"name": "teraflop-platform",
-	"description": "Teraflop for Deno platform and desktop integration library",
+	"description": "Teraflop for Deno platform and desktop integration library.",
 	"license": "BSD-3-Clause",
 	"copyright": "Copyright © 2024, Chance Snow",
 	"authors": ["Chance Snow"],

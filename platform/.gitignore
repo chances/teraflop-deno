@@ -1,7 +1,5 @@
-.dub
-docs.json
-__dummy.html
-docs/
+# Artifacts
+/lib/ffi.json
 /teraflop-platform
 teraflop-platform.so
 teraflop-platform.dylib
@@ -9,6 +7,12 @@ teraflop-platform.dll
 teraflop-platform.a
 teraflop-platform.lib
 teraflop-platform-test-*
+
+# Dub
+.dub
+docs.json
+__dummy.html
+docs/
 *.exe
 *.pdb
 *.o

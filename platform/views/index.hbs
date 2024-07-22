@@ -1,0 +1,249 @@
+<html>
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <title>Teraflop Platform API Documentation</title>
+  <link rel="stylesheet" href="styles/docs.css" />
+  <link rel="stylesheet" href="styles/dub.css" />
+</head>
+<body>
+  <main>
+    <!-- <a id="downloadButton" href="https://code.dlang.org/packages/dbpf">
+      <div class="bs-hbtn right black">
+        <div class="content">get <strong>dbpf</strong><br><large>{{ DUB_VERSION }}</large></div>
+      </div><div class="bs-hbtn left red">
+        <div class="dub-logo"></div>
+      </div>
+    </a> -->
+    <aside class="flex row">
+      <nav>
+        <header class="flex row" style="margin-block-end: 1rem;">
+          <h1 style="margin: 0; width: min-content;">
+            <img src="/images/logo.png" width="200" alt="Teraflop">
+            <span style="margin-block-start: 0.5em;">Platform Integration API</span>
+          </h1>
+        </header>
+        <ul style="list-style: none; padding: 0;">
+          <li>
+            <a href="https://chances.github.io/teraflop-deno">API Reference</a>
+          </li>
+          <li>
+            <a href="https://github.com/chances/teraflop-deno#readme">Open Source on GitHub</a>
+          </li>
+        </ul>
+        <h2>API Reference</h2>
+        <form id="symbolSearchForm" action="#" method="GET">
+					<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(40);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" tabindex="1000">
+				</form>
+        <!-- TODO: Collect and write list of symbols -->
+        <!--ul id="symbols">{{#each SYMBOLS}}
+          <li>{{ this }}</li>
+        {{/each}}</ul-->
+      </nav>
+    </aside>
+    <article>
+      <h1>Teraflop for Deno Platform API</h1>
+      <p>
+        <a target="_blank" rel="noopener noreferrer" href="https://github.com/chances/teraflop-deno/actions/workflows/ci.yml">
+          <img src="https://github.com/chances/teraflop-deno/actions/workflows/ci.yml/badge.svg?branch=main" alt="Teraflop CI">
+        </a>
+        <a href="https://codecov.io/gh/chances/teraflop-deno">
+          <img src="https://codecov.io/gh/chances/teraflop-deno/branch/main/graph/badge.svg" alt="codecov">
+        </a>
+        <a target="_blank" href="https://opensource.org/licenses/BSD-3-Clause">
+          <img src="https://img.shields.io/badge/license-BSD-blue" alt="BSD 3-Clause License">
+        </a>
+      </p>
+      <p>Teraflop for Deno platform and desktop integration library.</p>
+      <h2 id="Usage">Usage</h2>
+      <pre class="typescript">
+import * as platform from "@teraflop/platform@{{ VERSION }}";
+
+platform.setIcon("app.ico");
+      </pre>
+      <h2>Modules</h2>
+      <ul>
+        <!-- TODO: Collect and write list of symbols -->
+        <!--{{#each MODULES}}<li><a href="{{ this.file }}">{{ this.name }}</a></li>{{/each}}-->
+        <li><a href="package.html">teraflop.platform</a></li>
+      </ul>
+      <h3>Windows</h3>
+      <ul class="column-wrap">
+        <li><a href="accctrl.html">win32.accctrl</a></li>
+        <li><a href="aclapi.html">win32.aclapi</a></li>
+        <li><a href="aclui.html">win32.aclui</a></li>
+        <li><a href="app.html">win32.app</a></li>
+        <li><a href="basetsd.html">win32.basetsd</a></li>
+        <li><a href="basetyps.html">win32.basetyps</a></li>
+        <li><a href="cderr.html">win32.cderr</a></li>
+        <li><a href="cguid.html">win32.cguid</a></li>
+        <li><a href="comcat.html">win32.comcat</a></li>
+        <li><a href="commctrl.html">win32.commctrl</a></li>
+        <li><a href="commdlg.html">win32.commdlg</a></li>
+        <li><a href="core.html">win32.core</a></li>
+        <li><a href="cpl.html">win32.cpl</a></li>
+        <li><a href="cplext.html">win32.cplext</a></li>
+        <li><a href="custcntl.html">win32.custcntl</a></li>
+        <li><a href="dbghelp_types.html">win32.dbghelp_types</a></li>
+        <li><a href="dbt.html">win32.dbt</a></li>
+        <li><a href="dde.html">win32.dde</a></li>
+        <li><a href="ddeml.html">win32.ddeml</a></li>
+        <li><a href="dhcpcsdk.html">win32.dhcpcsdk</a></li>
+        <li><a href="dlgs.html">win32.dlgs</a></li>
+        <li><a href="docobj.html">win32.docobj</a></li>
+        <li><a href="errorrep.html">win32.errorrep</a></li>
+        <li><a href="exdisp.html">win32.exdisp</a></li>
+        <li><a href="exdispid.html">win32.exdispid</a></li>
+        <li><a href="httpext.html">win32.httpext</a></li>
+        <li><a href="idispids.html">win32.idispids</a></li>
+        <li><a href="imagehlp.html">win32.imagehlp</a></li>
+        <li><a href="imm.html">win32.imm</a></li>
+        <li><a href="index.html">win32.index</a></li>
+        <li><a href="intshcut.html">win32.intshcut</a></li>
+        <li><a href="ipexport.html">win32.ipexport</a></li>
+        <li><a href="iphlpapi.html">win32.iphlpapi</a></li>
+        <li><a href="ipifcons.html">win32.ipifcons</a></li>
+        <li><a href="iprtrmib.html">win32.iprtrmib</a></li>
+        <li><a href="iptypes.html">win32.iptypes</a></li>
+        <li><a href="isguids.html">win32.isguids</a></li>
+        <li><a href="lm.html">win32.lm</a></li>
+        <li><a href="lmaccess.html">win32.lmaccess</a></li>
+        <li><a href="lmalert.html">win32.lmalert</a></li>
+        <li><a href="lmapibuf.html">win32.lmapibuf</a></li>
+        <li><a href="lmat.html">win32.lmat</a></li>
+        <li><a href="lmaudit.html">win32.lmaudit</a></li>
+        <li><a href="lmbrowsr.html">win32.lmbrowsr</a></li>
+        <li><a href="lmchdev.html">win32.lmchdev</a></li>
+        <li><a href="lmconfig.html">win32.lmconfig</a></li>
+        <li><a href="lmcons.html">win32.lmcons</a></li>
+        <li><a href="lmerr.html">win32.lmerr</a></li>
+        <li><a href="lmerrlog.html">win32.lmerrlog</a></li>
+        <li><a href="lmmsg.html">win32.lmmsg</a></li>
+        <li><a href="lmremutl.html">win32.lmremutl</a></li>
+        <li><a href="lmrepl.html">win32.lmrepl</a></li>
+        <li><a href="lmserver.html">win32.lmserver</a></li>
+        <li><a href="lmshare.html">win32.lmshare</a></li>
+        <li><a href="lmsname.html">win32.lmsname</a></li>
+        <li><a href="lmstats.html">win32.lmstats</a></li>
+        <li><a href="lmsvc.html">win32.lmsvc</a></li>
+        <li><a href="lmuse.html">win32.lmuse</a></li>
+        <li><a href="lmuseflg.html">win32.lmuseflg</a></li>
+        <li><a href="lmwksta.html">win32.lmwksta</a></li>
+        <li><a href="lzexpand.html">win32.lzexpand</a></li>
+        <li><a href="malloc.html">win32.malloc</a></li>
+        <li><a href="mapi.html">win32.mapi</a></li>
+        <li><a href="mciavi.html">win32.mciavi</a></li>
+        <li><a href="mcx.html">win32.mcx</a></li>
+        <li><a href="mgmtapi.html">win32.mgmtapi</a></li>
+        <li><a href="mmsystem.html">win32.mmsystem</a></li>
+        <li><a href="msacm.html">win32.msacm</a></li>
+        <li><a href="mshtml.html">win32.mshtml</a></li>
+        <li><a href="mswsock.html">win32.mswsock</a></li>
+        <li><a href="nb30.html">win32.nb30</a></li>
+        <li><a href="nddeapi.html">win32.nddeapi</a></li>
+        <li><a href="nspapi.html">win32.nspapi</a></li>
+        <li><a href="ntdef.html">win32.ntdef</a></li>
+        <li><a href="ntdll.html">win32.ntdll</a></li>
+        <li><a href="ntldap.html">win32.ntldap</a></li>
+        <li><a href="ntsecapi.html">win32.ntsecapi</a></li>
+        <li><a href="ntsecpkg.html">win32.ntsecpkg</a></li>
+        <li><a href="oaidl.html">win32.oaidl</a></li>
+        <li><a href="objbase.html">win32.objbase</a></li>
+        <li><a href="objfwd.html">win32.objfwd</a></li>
+        <li><a href="objidl.html">win32.objidl</a></li>
+        <li><a href="objsafe.html">win32.objsafe</a></li>
+        <li><a href="ocidl.html">win32.ocidl</a></li>
+        <li><a href="odbcinst.html">win32.odbcinst</a></li>
+        <li><a href="ole.html">win32.ole</a></li>
+        <li><a href="ole2.html">win32.ole2</a></li>
+        <li><a href="ole2ver.html">win32.ole2ver</a></li>
+        <li><a href="oleacc.html">win32.oleacc</a></li>
+        <li><a href="oleauto.html">win32.oleauto</a></li>
+        <li><a href="olectl.html">win32.olectl</a></li>
+        <li><a href="olectlid.html">win32.olectlid</a></li>
+        <li><a href="oledlg.html">win32.oledlg</a></li>
+        <li><a href="oleidl.html">win32.oleidl</a></li>
+        <li><a href="package.html">win32.package</a></li>
+        <li><a href="pbt.html">win32.pbt</a></li>
+        <li><a href="powrprof.html">win32.powrprof</a></li>
+        <li><a href="prsht.html">win32.prsht</a></li>
+        <li><a href="psapi.html">win32.psapi</a></li>
+        <li><a href="rapi.html">win32.rapi</a></li>
+        <li><a href="ras.html">win32.ras</a></li>
+        <li><a href="rasdlg.html">win32.rasdlg</a></li>
+        <li><a href="raserror.html">win32.raserror</a></li>
+        <li><a href="rassapi.html">win32.rassapi</a></li>
+        <li><a href="reason.html">win32.reason</a></li>
+        <li><a href="regstr.html">win32.regstr</a></li>
+        <li><a href="richedit.html">win32.richedit</a></li>
+        <li><a href="richole.html">win32.richole</a></li>
+        <li><a href="rpc.html">win32.rpc</a></li>
+        <li><a href="rpcdce.html">win32.rpcdce</a></li>
+        <li><a href="rpcdce2.html">win32.rpcdce2</a></li>
+        <li><a href="rpcdcep.html">win32.rpcdcep</a></li>
+        <li><a href="rpcndr.html">win32.rpcndr</a></li>
+        <li><a href="rpcnsi.html">win32.rpcnsi</a></li>
+        <li><a href="rpcnsip.html">win32.rpcnsip</a></li>
+        <li><a href="rpcnterr.html">win32.rpcnterr</a></li>
+        <li><a href="schannel.html">win32.schannel</a></li>
+        <li><a href="sdkddkver.html">win32.sdkddkver</a></li>
+        <li><a href="secext.html">win32.secext</a></li>
+        <li><a href="security.html">win32.security</a></li>
+        <li><a href="servprov.html">win32.servprov</a></li>
+        <li><a href="setupapi.html">win32.setupapi</a></li>
+        <li><a href="shellapi.html">win32.shellapi</a></li>
+        <li><a href="shldisp.html">win32.shldisp</a></li>
+        <li><a href="shlguid.html">win32.shlguid</a></li>
+        <li><a href="shlobj.html">win32.shlobj</a></li>
+        <li><a href="shlwapi.html">win32.shlwapi</a></li>
+        <li><a href="snmp.html">win32.snmp</a></li>
+        <li><a href="sql.html">win32.sql</a></li>
+        <li><a href="sqlext.html">win32.sqlext</a></li>
+        <li><a href="sqltypes.html">win32.sqltypes</a></li>
+        <li><a href="sqlucode.html">win32.sqlucode</a></li>
+        <li><a href="sspi.html">win32.sspi</a></li>
+        <li><a href="stat.html">win32.stat</a></li>
+        <li><a href="subauth.html">win32.subauth</a></li>
+        <li><a href="time.html">win32.time</a></li>
+        <li><a href="tlhelp32.html">win32.tlhelp32</a></li>
+        <li><a href="tmschema.html">win32.tmschema</a></li>
+        <li><a href="unknwn.html">win32.unknwn</a></li>
+        <li><a href="uuid.html">win32.uuid</a></li>
+        <li><a href="vfw.html">win32.vfw</a></li>
+        <li><a href="w32api.html">win32.w32api</a></li>
+        <li><a href="winbase.html">win32.winbase</a></li>
+        <li><a href="winber.html">win32.winber</a></li>
+        <li><a href="wincon.html">win32.wincon</a></li>
+        <li><a href="wincrypt.html">win32.wincrypt</a></li>
+        <li><a href="windef.html">win32.windef</a></li>
+        <li><a href="windows.html">win32.windows</a></li>
+        <li><a href="winerror.html">win32.winerror</a></li>
+        <li><a href="wingdi.html">win32.wingdi</a></li>
+        <li><a href="winhttp.html">win32.winhttp</a></li>
+        <li><a href="wininet.html">win32.wininet</a></li>
+        <li><a href="winioctl.html">win32.winioctl</a></li>
+        <li><a href="winldap.html">win32.winldap</a></li>
+        <li><a href="winnetwk.html">win32.winnetwk</a></li>
+        <li><a href="winnls.html">win32.winnls</a></li>
+        <li><a href="winnt.html">win32.winnt</a></li>
+        <li><a href="winperf.html">win32.winperf</a></li>
+        <li><a href="winreg.html">win32.winreg</a></li>
+        <li><a href="winsock2.html">win32.winsock2</a></li>
+        <li><a href="winspool.html">win32.winspool</a></li>
+        <li><a href="winsvc.html">win32.winsvc</a></li>
+        <li><a href="winuser.html">win32.winuser</a></li>
+        <li><a href="winver.html">win32.winver</a></li>
+        <li><a href="wtsapi32.html">win32.wtsapi32</a></li>
+        <li><a href="wtypes.html">win32.wtypes</a></li>
+      </ul>
+    </article>
+  </main>
+  <footer>
+    <a href="https://github.com/chances/teraflop-deno#readme">GitHub</a>
+    <span class="faint" style="float: right;">Generated using <a href="https://dlang.org/spec/ddoc.html">Ddoc</a>.</span>
+  </footer>
+  <!-- TODO: Collect and write list of symbols -->
+  <!--script type="application/javascript">const symbols = [{{#each SYMBOLS}}{{ this }},{{/each}}];</script-->
+  <script type="application/javascript">const symbols = [];</script>
+  <script type="application/javascript" src="scripts/symbols.js"></script>
+</body>
