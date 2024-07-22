@@ -136,12 +136,10 @@ article.module > section.members > ul {
 }
 
 ul.column-wrap {
-  display: flex;
-  flex-flow: column wrap;
-  max-width: calc(100vw - 150px);
-  height: 350px;
-  column-gap: 28px;
-  overflow-x: auto;
+  column-count: auto;
+  column-width: 140px;
+  column-fill: balance;
+  width: calc(100vw - 350px);
 }
 
 ul.column-wrap > li {
