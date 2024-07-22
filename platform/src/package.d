@@ -4,6 +4,8 @@ import std.conv : castFrom, to;
 import std.exception : enforce;
 version (Windows) import win32.windows;
 
+// TODO: https://www.freedesktop.org/wiki/Specifications
+
 extern(C) struct Icon {
   size_t width, height;
 
