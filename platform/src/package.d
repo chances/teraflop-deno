@@ -36,7 +36,7 @@ extern(C) bool setIcon(char* filePath) {
 
   version (Windows) {
     const icon = LoadIconFromPng(filePath.fromStringz.to!string);
-    // TODO: Set this app's icon
+    // TODO: Set this app's icon. See https://stackoverflow.com/q/16472538/1363247
     return true;
   } else version (Linux) return false;
   else return false;
