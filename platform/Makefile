@@ -1,6 +1,10 @@
 all:
 	dub build
 
+.PHONY: ffi
+ffi:
+	dub build -b ffi
+
 .PHONY: lint
 lint:
 	dub lint --style-check

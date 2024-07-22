@@ -7,6 +7,21 @@
 	"targetType": "dynamicLibrary",
 	"targetPath": "lib",
 	"systemDependencies": "Win32",
+  "buildTypes": {
+    "docs": {
+      "sourceFiles": ["views/docs.ddoc"],
+      "buildOptions": ["syntaxOnly"],
+      "dflags": ["-Dddocs"],
+      "postBuildCommands": [
+        "rdmd scripts/docs.d"
+      ]
+    },
+    "ffi": {
+      "sourceFiles": ["views/ffi.ddoc"],
+      "buildOptions": ["syntaxOnly"],
+      "dflags": ["-Dddox", "-D", "-X", "-Xflib/ffi.json"]
+    }
+  },
 	"dependencies": {},
 	"configurations": [
 		{

@@ -179,13 +179,13 @@ struct WICRect {
 alias WICPixelFormatGUID = Guid*;
 
 /// Params:
-/// Expr: Can be a type name.
+/// Expr = Can be a type name.
 Guid* __uuidof(string Expr)() {
   return Guid.Empty;
 }
 import std.traits : isPointer, isArray;
 /// Params:
-/// Expr: Can be a pointer, reference, or array of that type, a template specialized on these types, or a variable of these types. The argument is valid as long as the compiler can use it to find the attached GUID.
+/// value = Can be a pointer, reference, or array of that type, a template specialized on these types, or a variable of these types. The argument is valid as long as the compiler can use it to find the attached GUID.
 Guid* __uuidof(T)(T value) if (isPointer!T || is(T : IUnknown) || isArray!T) {
   return Guid.Empty;
 }

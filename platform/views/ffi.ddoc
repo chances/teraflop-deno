@@ -1,0 +1,113 @@
+# Generates a JSON index of symbols.
+
+HEADER={
+FOOTER=}
+
+DDOC=$(HEADER)
+  $(ARTICLE_HEADER)
+  "module": {
+    "title": "$(TITLE)",
+    "source": {
+      "url": "https://github.com/chances/dbpf-d/blob/main/$(SRCFILENAME)",
+      "file": "$(SRCFILENAME)"
+    },
+    $(BODY)
+  }
+$(FOOTER)
+
+ESCAPES =
+  /"/\"/
+  /\/\\/
+  /\n/\\n/
+  /\r\n/\\n/
+
+TITLE="$0"
+MODULE_LABEL=
+MEMBERS_HEADER=
+
+RED=$0
+BLUE=$0
+GREEN=$0
+YELLOW=$0
+BLACK=$0
+WHITE=$0
+
+DDOC_SECTIONS=$0
+
+DDOC_LICENSE = "license": "$0",$(LF)
+DDOC_AUTHORS = "authors": "$0",$(LF)
+DDOC_BUGS = "bugs": "$0",$(LF)
+DDOC_COPYRIGHT = "copyright": "$0",$(LF)
+DDOC_DATE = "date": "$0",$(LF)
+DDOC_DEPRECATED = "deprecated": "$0",$(LF)
+DDOC_HISTORY = "history": "$0",$(LF)
+DDOC_SEE_ALSO = "see-also": "$0",$(LF)
+DDOC_STANDARDS = "standards": "$0",$(LF)
+DDOC_THROWS = "throws": "$0",$(LF)
+DDOC_VERSION = "version": "$0",$(LF)
+
+DDOC_MODULE_MEMBERS="members": [
+  $0
+],
+DDOC_MEMBERS = "members": [
+  $0
+],
+DDOC_CLASS_MEMBERS="class": { "members":
+  $0
+}
+DDOC_STRUCT_MEMBERS = "struct": { "members":
+  $0
+}
+DDOC_ENUM_MEMBERS = "enum": { "members":
+  $0
+}
+DDOC_TEMPLATE_MEMBERS = "template": { "members":
+  $0
+}
+
+DDOC_MEMBER = "member": $0,$(LF)
+
+DDOC_MEMBER_HEADER = "$0"$(LF)
+DDOC_HEADER_ANCHOR = "anchor": {
+  "id": "$1",
+  "url": "#$1",
+  "symbol": "$2"
+},
+
+DDOC_ANCHOR = "anchor": { "id": "$1" },
+DDOC_DECL="decl": "$0",
+DDOC_PSYMBOL=<strong>$0</strong>
+DDOC_DECL_DD="decl": "$0",
+
+DDOC_SUMMARY="summary": "$0",
+DDOC_DESCRIPTION="description": "$0",
+DDOC_BLANKLINE=$(LF)
+
+CODE="code": "$0",
+DDOC_PARAMS = "params": [
+  $0
+],
+DDOC_PARAM_ROW={
+  $0,
+},
+DDOC_PARAM_ID="name": "$(CODE $0)",$(LF)
+DDOC_PARAM_DESC="desc": "$0",$(LF)
+DDOC_PARAM="code": "$(CODE $(I $0))",$(LF)
+
+DDOC_SECTION_H="name": "$0"$(LF)
+DDOC_SECTION="members": $0,$(LF)
+SECTION="section": {
+  $(DDOC_SECTION_H $1),
+  $(DDOC_SECTION $2)
+}
+
+DDOC_ENUM_BASETYPE="enumBase": {
+  "type": "$0",
+  "anchor": {
+    "url": "https://dlang.org/spec/type.html#basic-data-types"
+  },
+},
+
+DDOC_RETURNS="returns": $0,$(LF)
+DDOC_EXAMPLES=$(SECTION Examples, $0)
+DDOC_BUGS=$(SECTION $(RED Bugs), $0)
