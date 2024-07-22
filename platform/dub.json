@@ -1,0 +1,40 @@
+{
+	"name": "teraflop-platform",
+	"description": "Teraflop for Deno platform and desktop integration library",
+	"license": "BSD-3-Clause",
+	"copyright": "Copyright © 2024, Chance Snow",
+	"authors": ["Chance Snow"],
+	"targetType": "dynamicLibrary",
+	"targetPath": "lib",
+	"systemDependencies": "Win32",
+	"dependencies": {},
+	"configurations": [
+		{
+			"name": "library-posix",
+      "platforms": ["posix"],
+      "versions": ["Library"],
+		},
+    {
+      "name": "library-windows",
+      "platforms": ["windows"],
+      "versions": ["Library"],
+      "dependencies": {
+        "win32": "~>2.100.2"
+      },
+      "libs": ["user32", "gdi32", "Ole32", "Shlwapi", "Windowscodecs"]
+    },
+		{
+			"name": "unittest-posix",
+      "platforms": ["posix"]
+		},
+    {
+      "name": "unittest-windows",
+      "platforms": ["windows"],
+      "versions": ["Library"],
+      "dependencies": {
+        "win32": "~>2.100.2"
+      },
+      "libs": ["user32", "gdi32", "Ole32", "Shlwapi", "Windowscodecs"]
+    }
+	]
+}
