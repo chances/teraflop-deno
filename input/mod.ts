@@ -10,7 +10,7 @@ export const enum KeyboardKey {
   arrowLeft = "ArrowLeft",
   arrowRight = "ArrowRight",
   arrowUp = "ArrowUp",
-  end ="End",
+  end = "End",
   home = "Home",
   pageDown = "PageDown",
   pageUp = "PageUp",
@@ -52,17 +52,21 @@ export class Input {
 }
 
 export class InputMap {
-  constructor (private input: Input) {}
+  constructor(private input: Input) {}
 
+  // deno-lint-ignore no-unused-vars
   bind(action: string) {
     return new InputMapBuilder(this.input);
   }
 }
 
 export class InputMapBuilder {
-  constructor (private input: Input) {}
+  constructor(private input: Input) {}
 
+  // deno-lint-ignore no-unused-vars
   keyboardPressed(key: KeyboardKey) {}
+  // deno-lint-ignore no-unused-vars
   keyboardHeld(key: KeyboardKey) {}
+  // deno-lint-ignore no-unused-vars
   keyboardReleased(key: KeyboardKey) {}
 }

@@ -4,7 +4,7 @@ export function hash(obj: object | object[], ...objects: object[]): string {
   return hashObject(
     // deno-lint-ignore no-explicit-any
     objects.concat(obj).reduce((obj, x, i) => ({ ...obj, [i]: x }), {} as Record<number, any>),
-    { algorithm: 'sha1' }
+    { algorithm: "sha1" },
   );
 }
 
@@ -25,7 +25,7 @@ export function constantProperty(value?: any): PropertyDescriptor {
     enumerable: true,
     configurable: false,
     writable: false,
-    value
+    value,
   };
 }
 
@@ -36,7 +36,7 @@ export function privateProperty(value?: any): PropertyDescriptor {
     enumerable: false,
     configurable: false,
     writable: true,
-    value
+    value,
   };
 }
 
@@ -48,5 +48,5 @@ export function sealed<T extends AnyConstructor>(constructor: T) {
 
 // TODO: Use a `Proxy` to map *any* property to `false`.
 export const No = Object.seal({
-  depthTest: false
+  depthTest: false,
 });

@@ -6,6 +6,7 @@ struct Fragment {
 @vertex
 fn vs(@location(0) pos: vec3f, @location(1) color: vec4f) -> Fragment {
   var fragment: Fragment;
+  fragment.position = vec4f(pos, 1.0);
   fragment.color = color;
   return fragment;
 }
