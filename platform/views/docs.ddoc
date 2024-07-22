@@ -10,6 +10,11 @@ DDOC=<!DOCTYPE html>
     <title>$(TITLE) - Teraflop Platform API Documentation</title>
     <link rel="stylesheet" href="styles/docs.css" />
     <link rel="stylesheet" href="styles/dub.css" />
+    <!-- Highlight code blocks with highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/d.min.js"></script>
   </head>
   <body>
     $(HEADER)
@@ -51,6 +56,12 @@ DDOC=<!DOCTYPE html>
       </article>
     </main>
     $(FOOTER)
+    <!-- TODO: Collect and write list of symbols -->
+    <!--script type="application/javascript">const symbols = [{{#each SYMBOLS}}{{ this }},{{/each}}];</script-->
+    <script type="text/javascript">const symbols = [];</script>
+    <script type="text/javascript" src="scripts/symbols.js"></script>
+    <script type="text/javascript">hljs.highlightAll();</script>
+    <script type="text/javascript" src="scripts/codeCopy.js"></script>
   </body>
 </html>
 
@@ -190,10 +201,10 @@ DDOC_MEMBER = <li class="member">
 </li>
 
 DDOC_MEMBER_HEADER = <h3>$0</h3>
-DDOC_HEADER_ANCHOR = <a id="$1" href="#$1"><code class="code">$2</code></a>
+DDOC_HEADER_ANCHOR = <a id="$1" href="#$1"><code class="dlang">$2</code></a>
 
 DDOC_ANCHOR = <span class="anchor" id="$1"></span>
-DDOC_DECL=<dt class="decl"><code>$0</code></dt>
+DDOC_DECL=<dt class="decl"><pre class="dlang inline"><code>$0</code></pre></dt>
 DDOC_PSYMBOL=<strong>$0</strong>
 DDOC_DECL_DD=<dd class="decl">$0</dd>
 
@@ -201,7 +212,12 @@ DDOC_SUMMARY=<p>$0</p>
 DDOC_DESCRIPTION=<p>$0</p>
 DDOC_BLANKLINE=</p><p>
 
-CODE=<code>$0</code>
+CODE=<pre class="dlang"><div class="bug">
+  <span class="language">D</span>
+  <span class="copy"></span>
+</div><code>$0</code></pre>
+
+CODE_PARAM=<pre class="dlang inline param"><code>$0</code></pre>
 DDOC_PARAMS = <div class="ddoc_params">
   <h4>Parameters</h4>
   <table cellspacing="0" cellpadding="5" border="0" class="params">
@@ -211,9 +227,9 @@ DDOC_PARAMS = <div class="ddoc_params">
   </table>
 </div>$(LF)
 DDOC_PARAM_ROW=<tr>$0</tr>
-DDOC_PARAM_ID=<td class="param name">$(CODE $0)</td>
+DDOC_PARAM_ID=<td class="param name">$(CODE_PARAM $0)</td>
 DDOC_PARAM_DESC=<td class="param desc"><p>$0</p></td>
-DDOC_PARAM=$(CODE $(I $0))
+DDOC_PARAM=$(I $0)
 
 DDOC_SECTION_H=<h4 class="section">$0</h4>
 DDOC_SECTION=<p>$0</p>

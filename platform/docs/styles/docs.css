@@ -56,9 +56,12 @@ th {
   font-weight: normal;
   font-style: italic;
 }
-tr {
+tr:not(:last-child) {
   border-bottom: 1px dashed #ddd;
   vertical-align: top;
+}
+td.param.desc p {
+  margin: 0;
 }
 col.caption {
   min-width: 150pt;
@@ -142,8 +145,63 @@ ul.column-wrap {
   width: calc(100vw - 350px);
 }
 
-ul.column-wrap > li {
-  flex: 1 1 25%;
+pre {
+  position: relative;
+  padding: 4px;
+  border: solid 1px lightgray;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: inset lightgray 0 0 4px;
+}
+
+pre.dlang.inline {
+  display: inline-block;
+  margin: 0;
+  padding: 2px;
+}
+
+pre.dlang.inline > code {
+  padding: 0;
+}
+
+article pre > code.hljs {
+  padding: 0.25rem;
+}
+
+pre > div.bug {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px;
+  background-color: lightgray;
+  border-bottom-left-radius: 4px;
+}
+
+pre > div.bug span.language {
+  font-weight: 700;
+}
+
+pre button.copy {
+  margin: 0;
+  padding: 2px;
+  background-color: rgb(240, 240, 240);
+  border: solid 1px rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.2s linear, box-shadow 0.125s ease-in;
+}
+pre button.copy:hover {
+  border-color: rgba(0, 0, 0, 0.65);
+}
+pre button.copy:active {
+  box-shadow: inset gray 0 0 3px;
+}
+
+pre button.copy > img.icon {
+  width: 16px;
 }
 
 ul li > dd.decl {

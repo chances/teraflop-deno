@@ -4,6 +4,7 @@ import std.conv : castFrom, to;
 import std.exception : enforce;
 version (Windows) import win32.windows;
 
+///
 extern(C) struct Icon {
   size_t width, height;
 
@@ -24,6 +25,7 @@ extern(C) struct Icon {
   }
 }
 
+///
 extern(C) bool setIcon(char* filePath) {
   import std.conv : text;
   import std.file : exists, read;
