@@ -1,4 +1,6 @@
+import { assert } from "jsr:@std/assert";
 import * as async from "jsr:@std/async";
+import * as webgpu from "@std/webgpu";
 import RenderLoop, { RealTimeApp, Tick } from "jsr:@chances/render-loop";
 import { createWindow, DwmWindow, getPrimaryMonitor, pollEvents } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
@@ -26,7 +28,7 @@ export * from "./utils.ts";
 
 export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;
-  private _gpuInfo: GPUInfo | null = null;
+  private _gpuInfo: GPUAdapterInfo | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
@@ -100,11 +102,11 @@ export default abstract class Game implements RealTimeApp {
       new Error(
         "GPU adapter is not available.",
       ),
-    );
+    ) as unknown as GPUAdapterInfo ?? null;
     this._adapter = await this.requestAdapter();
     if (!this._adapter) throw Error("Could not acquire a suitable WebGPU adapter.");
     console.debug("Done.");
-    console.log("GPU: ", this.gpuInfo.description);
+    console.log("GPU: ", this.gpuInfo?.description ?? "Unknown");
     console.debug("Retrieving GPU device...");
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
@@ -273,6 +275,50 @@ export default abstract class Game implements RealTimeApp {
         if (err) throw new ValidationError(err.message);
       });
     });
+  }
+
+  /** Capture the main window's viewport to a `GPUBuffer`. */
+  async captureFrame() {
+    assert(this.device !== null, "GPU device is lost.");
+    assert(this.mainWindow !== null, "App is not running.");
+    const size = this.mainWindow.size;
+    // See https://deno.land/std@0.224.0/webgpu/create_capture.ts?s=createCapture
+    const { texture, outputBuffer } = webgpu.createCapture(this.device!, size.width, size.height);
+    const renderAttachment: GPURenderPassColorAttachment = {
+      view: texture.createView(),
+      loadOp: "clear" as GPULoadOp,
+      storeOp: "store" as GPUStoreOp,
+      clearValue: this.clearColor,
+    };
+
+    // TODO: this.defaultRenderPass.queueTask(() => {});
+    await this.renderQueue.queueTask(() => {
+      const encoder = this.device!.createCommandEncoder();
+      encoder.beginRenderPass({ colorAttachments: [renderAttachment] }).end();
+      const { padded } = webgpu.getRowPadding(size.width);
+      encoder.copyTextureToBuffer(
+        { texture },
+        { buffer: outputBuffer, bytesPerRow: padded },
+        size,
+      );
+      return encoder.finish();
+    });
+
+    // `outputBuffer` contains the raw image data, can then be used to save as png or other formats.
+    return outputBuffer;
+  }
+
+  private readonly _renderQueue = {
+    /** Queue a GPU command buffer immediately. */
+    queueTask: (task: () => GPUCommandBuffer) => {
+      assert(this.device !== null, "GPU device is lost.");
+      this.device!.queue.submit([task()]);
+      return this.device!.queue.onSubmittedWorkDone();
+    },
+  };
+
+  get renderQueue() {
+    return this._renderQueue;
   }
 
   private resizeGpuSurface(window: DwmWindow, device: GPUDevice) {

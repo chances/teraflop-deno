@@ -9,6 +9,7 @@
     "lineWidth": 120
   },
   "imports": {
+    "@std/webgpu": "jsr:@std/webgpu@^0.224.5",
     "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0"
   }
 }
