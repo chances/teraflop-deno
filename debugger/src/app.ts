@@ -4,5 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const info = document.createElement('div');
   info.classList.add('info');
+  info.innerText = navigator.vendor;
   document.body.append(info);
 });

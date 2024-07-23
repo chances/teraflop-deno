@@ -69,15 +69,24 @@ await async.delay(0);
 // Spawn the web server in a BG worker
 // TODO: Pick a unique port for Teraflop
 export const port = 8080;
+console.debug("Starting debug server...");
 const server = new Worker(import.meta.resolve("./server.ts"), { type: "module" });
-server.onmessage = (e: MessageEvent) => {
-  console.log("Server:", e.data);
+const killServer = () => {
+  server.postMessage({ event: "kill" });
 };
-
-// Open web view
-// TODO: Load a data URI with a loading screen
-view.navigate(`http://localhost:${port}`);
-view.run();
-
-// Debugger has exited
-server.terminate();
+Deno.addSignalListener("SIGTERM", killServer);
+Deno.addSignalListener("SIGINT", killServer);
+server.onmessage = (e: MessageEvent) => {
+  if (e.data?.event === 'server-started') {
+    // Open web view
+    // TODO: Load a data URI with a loading screen
+    view.navigate(`http://localhost:${port}`);
+    view.run();
+    // Debugger has exited
+    server.terminate();
+  } else if (e.data?.event === 'title-changed') {
+    view.title = e.data?.title ?? view.title;
+  } else if (e.data?.event === 'server-stopped') {
+    view.destroy();
+  } else console.debug("Server:", e.data);
+};
