@@ -75,7 +75,7 @@ export class Shader extends Component implements Resource {
     device.pushErrorScope("validation");
     this._module = device.createShaderModule({
       code: this.source,
-      label: this.label,
+      label: `Shader:${this.label}`,
     });
     const err = await device.popErrorScope();
     if (err) throw new ValidationError(err.message, { details: await this.reflect() });
@@ -282,7 +282,7 @@ export class Pipeline extends Component implements Resource {
     device.pushErrorScope("validation");
     this._pipeline = await device.createRenderPipelineAsync({
       layout: "auto",
-      label: this.label,
+      label: `Pipeline<${this.label}>`,
       primitive: {
         topology: "triangle-list",
         frontFace: "cw",

@@ -240,20 +240,21 @@ export default abstract class Game implements RealTimeApp {
 
             // Encode this mesh into a render pass
             const commandEncoder = this.device!.createCommandEncoder();
-            const passEncoder = commandEncoder.beginRenderPass({
+            const renderPass = commandEncoder.beginRenderPass({
+              label: `Pipeline<${pipeline.label}>:Entity<${entity}>`,
               colorAttachments: [{
                 view: getFrameBuffer(),
                 loadOp: "load" as GPULoadOp,
                 storeOp: "store" as GPUStoreOp,
               }],
             });
-            passEncoder.setPipeline(pipeline);
+            renderPass.setPipeline(pipeline);
             // TODO: Make the vertex buffer optional, e.g. for static triangle or quad shaders
-            passEncoder.setVertexBuffer(0, mesh.vertexBuffer!);
-            if (mesh.isIndexed) passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
-            passEncoder.draw(mesh.vertices.length);
-            commandEncoder.insertDebugMarker(`Drawn entity: ${this.world.entityId(entity)}`);
-            passEncoder.end();
+            renderPass.setVertexBuffer(0, mesh.vertexBuffer!);
+            if (mesh.isIndexed) renderPass.setIndexBuffer(mesh.indexBuffer!, "uint32");
+            renderPass.draw(mesh.vertices.length);
+            commandEncoder.insertDebugMarker(`Drawn: Entity<${this.world.entityId(entity)}>`);
+            renderPass.end();
             commandBuffers.push(commandEncoder.finish());
           },
         ),
