@@ -1,19 +1,27 @@
-import { html } from "https://deno.land/x/html@v1.2.0/mod.ts";
 import * as async from "@std/async";
 import { assert } from "@std/assert";
+import * as fs from "@std/fs";
+import * as path from "@std/path";
 import * as webview from "@webview/webview";
 import { SizeHint, Webview } from "@webview/webview";
 import * as Wm from "https://win32.deno.dev/0.4.1/UI.WindowsAndMessaging";
 
+const self = new URL(import.meta.url);
+const decoder = new TextDecoder("utf-8");
+
 if (Deno.build.os === "windows") webview.preload();
 
 const view = new Webview(true);
+const window = view.unsafeWindowHandle as Deno.PointerValue;
 view.title = "Teraflop Debugger";
 const size = { width: 400, height: 225 };
 view.size = { ...size, hint: SizeHint.NONE };
 
-if (Deno.build.os === "windows") {
-  const window = view.unsafeWindowHandle as Deno.PointerValue;
+// Move window to the top-left corner
+if (Deno.build.os === "osx") {
+  // TODO: Move window to the top-left corner. Try https://github.com/fazil47/deno-winit
+  // Try https://deno.land/x/deno_bindgen@0.8.1 with the Teraflop platform extensions
+} else if (Deno.build.os === "windows") {
   assert(window !== null);
   const windowBounds = new Wm.RECTView(Wm.allocRECT());
   assert(Wm.GetWindowRect(window, windowBounds.buffer));
@@ -58,13 +66,18 @@ await async.delay(0);
 // libSHLWAPI_dll.close();
 // TODO: Desktop integration with GetThemeSysColor function (uxtheme.h). Seehttps://learn.microsoft.com/en-us/windows/win32/api/uxtheme/nf-uxtheme-getthemesyscolor
 
-const document = html`
-  <style>body { font-family: sans-serif; }</style>
-  <body>
-    <h1>Hello from deno v${Deno.version.deno}</h1>
-    <p><a href="https://deno.land">Deno</a></p>
-    <p><a href="https://basecamp.com">Basecamp</a></p>
-  </body>
-`;
-view.navigate(`data:text/html,${encodeURIComponent(document)}`);
+// Spawn the web server in a BG worker
+// TODO: Pick a unique port for Teraflop
+export const port = 8080;
+const server = new Worker(import.meta.resolve("./server.ts"), { type: "module" });
+server.onmessage = (e: MessageEvent) => {
+  console.log("Server:", e.data);
+};
+
+// Open web view
+// TODO: Load a data URI with a loading screen
+view.navigate(`http://localhost:${port}`);
 view.run();
+
+// Debugger has exited
+server.terminate();
