@@ -26,6 +26,7 @@ export * from "./utils.ts";
 
 export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;
+  private _gpuInfo: GPUInfo | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
@@ -52,15 +53,8 @@ export default abstract class Game implements RealTimeApp {
     return this._device;
   }
 
-  /** @rejects When the GPU adapter is unavailable. */
   get gpuInfo() {
-    // Unmask GPU device info
-    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
-    return this._adapter?.requestAdapterInfo(["vendor", "device", "description"]) ?? Promise.reject(
-      new Error(
-        "GPU adapter is not available.",
-      ),
-    );
+    return this._gpuInfo;
   }
 
   get active() {
@@ -90,14 +84,28 @@ export default abstract class Game implements RealTimeApp {
     e.preventDefault();
   };
 
+  private requestAdapter() {
+    return navigator.gpu.requestAdapter({ powerPreference: "low-power" });
+  }
+
+  /** @rejects When the GPU adapter is unavailable. */
   async run() {
     // TODO: Remove this event listener when the render loop finishes
     globalThis.addEventListener("unhandledrejection", this.unhandledRejection);
 
-    this._adapter = await navigator.gpu.requestAdapter({
-      powerPreference: "low-power",
-    });
+    console.debug("Retrieving adapter info...");
+    // TODO: Unmask GPU device info
+    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
+    this._gpuInfo = await (await this.requestAdapter())?.requestAdapterInfo() ?? Promise.reject(
+      new Error(
+        "GPU adapter is not available.",
+      ),
+    );
+    this._adapter = await this.requestAdapter();
     if (!this._adapter) throw Error("Could not acquire a suitable WebGPU adapter.");
+    console.debug("Done.");
+    console.log("GPU: ", this.gpuInfo.description);
+    console.debug("Retrieving GPU device...");
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
       requiredLimits: {
@@ -117,6 +125,7 @@ export default abstract class Game implements RealTimeApp {
       },
     });
     if (!this._device) throw Error("Could not acquire a suitable WebGPU device.");
+    console.debug("Done.");
 
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
