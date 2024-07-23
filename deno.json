@@ -12,7 +12,10 @@
     "lineWidth": 120
   },
   "imports": {
-    "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0",
-    "jsr:@webview/webview": "jsr:@webview/webview@^0.8.0"
+    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@std/async": "jsr:@std/async@^1.0.0",
+    "@std/webgpu": "jsr:@std/webgpu@^0.224.5",
+    "@webview/webview": "jsr:@webview/webview@^0.8.0",
+    "@chances/render-loop": "jsr:@chances/render-loop@^0.8.0"
   }
 }

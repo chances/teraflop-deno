@@ -1,8 +1,8 @@
 import { html } from "https://deno.land/x/html@v1.2.0/mod.ts";
-import * as async from "jsr:@std/async";
-import { assert } from "jsr:@std/assert";
-import * as webview from "jsr:@webview/webview";
-import { SizeHint, Webview } from "jsr:@webview/webview";
+import * as async from "@std/async";
+import { assert } from "@std/assert";
+import * as webview from "@webview/webview";
+import { SizeHint, Webview } from "@webview/webview";
 
 if (Deno.build.os === "windows") webview.preload();
 
@@ -43,7 +43,7 @@ Wm.MoveWindow(window, 12, 12, size.width, size.height, true);
 
 // FIXME: The tween is broken...
 await async.delay(0);
-// import RenderLoop, { Tick } from "jsr:@chances/render-loop";
+// import RenderLoop, { Tick } from "@chances/render-loop";
 // import TWEEN, { Easing, Tween } from "npm:@tweenjs/tween.js";
 // await new Promise((resolve) => {
 //   const pos = { x: windowBounds.left, y: windowBounds.top };

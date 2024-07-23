@@ -1,5 +1,7 @@
+import { assert } from "jsr:@std/assert";
 import * as async from "jsr:@std/async";
-import RenderLoop, { RealTimeApp, Tick } from "jsr:@chances/render-loop";
+import * as webgpu from "@std/webgpu";
+import RenderLoop, { RealTimeApp, Tick } from "@chances/render-loop";
 import { createWindow, DwmWindow, getPrimaryMonitor, pollEvents } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
 import { Input } from "./input/mod.ts";
@@ -7,11 +9,9 @@ export * from "./input/mod.ts";
 import { Entity, Filter, query, RunnableAsSystem, System, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import * as graphics from "./graphics/mod.ts";
-import { Color, isResource, Material, Pipeline, Resource } from "./graphics/mod.ts";
 import { ComponentOf } from "./ecs/mod.ts";
-import { Mesh } from "./graphics/mod.ts";
+import { Color, isResource, Material, Mesh, Pipeline, Resource } from "./graphics/mod.ts";
 import { AnyConstructor } from "./utils.ts";
-export type Position = graphics.Position;
 export {
   Color,
   CullMode,
@@ -20,6 +20,7 @@ export {
   Material,
   Mesh,
   Pipeline,
+  type Position,
   Shader,
   ShaderStage,
   Topology,
@@ -30,6 +31,7 @@ export * from "./utils.ts";
 
 export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;
+  private _gpuInfo: GPUAdapterInfo | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
   private _contexts = new Map<string, GPUCanvasContext>();
@@ -56,15 +58,8 @@ export default abstract class Game implements RealTimeApp {
     return this._device;
   }
 
-  /** @rejects When the GPU adapter is unavailable. */
   get gpuInfo() {
-    // Unmask GPU device info
-    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
-    return this._adapter?.requestAdapterInfo(["vendor", "device", "description"]) ?? Promise.reject(
-      new Error(
-        "GPU adapter is not available.",
-      ),
-    );
+    return this._gpuInfo;
   }
 
   get active() {
@@ -94,14 +89,28 @@ export default abstract class Game implements RealTimeApp {
     e.preventDefault();
   };
 
+  private requestAdapter() {
+    return navigator.gpu.requestAdapter({ powerPreference: "low-power" });
+  }
+
+  /** @rejects When the GPU adapter is unavailable. */
   async run() {
     // TODO: Remove this event listener when the render loop finishes
     globalThis.addEventListener("unhandledrejection", this.unhandledRejection);
 
-    this._adapter = await navigator.gpu.requestAdapter({
-      powerPreference: "low-power",
-    });
+    console.debug("Retrieving adapter info...");
+    // TODO: Unmask GPU device info
+    // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
+    this._gpuInfo = await (await this.requestAdapter())?.requestAdapterInfo() ?? Promise.reject(
+      new Error(
+        "GPU adapter is not available.",
+      ),
+    ) as unknown as GPUAdapterInfo ?? null;
+    this._adapter = await this.requestAdapter();
     if (!this._adapter) throw Error("Could not acquire a suitable WebGPU adapter.");
+    console.debug("Done.");
+    console.log("GPU: ", this.gpuInfo?.description ?? "Unknown");
+    console.debug("Retrieving GPU device...");
     this._device = await this._adapter!.requestDevice({
       label: "Teraflop GPU Device",
       requiredLimits: {
@@ -121,6 +130,7 @@ export default abstract class Game implements RealTimeApp {
       },
     });
     if (!this._device) throw Error("Could not acquire a suitable WebGPU device.");
+    console.debug("Done.");
 
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
@@ -138,7 +148,8 @@ export default abstract class Game implements RealTimeApp {
     });
 
     await this.initialize(this.world);
-    this.renderLoop.start();
+    await this.renderLoop.start().finished;
+    // FIXME: console.debug("Event loop finished.");
   }
 
   tick(tick: Tick) {
@@ -232,20 +243,21 @@ export default abstract class Game implements RealTimeApp {
 
             // Encode this mesh into a render pass
             const commandEncoder = this.device!.createCommandEncoder();
-            const passEncoder = commandEncoder.beginRenderPass({
+            const renderPass = commandEncoder.beginRenderPass({
+              label: `Pipeline<${pipeline.label}>:Entity<${entity}>`,
               colorAttachments: [{
                 view: getFrameBuffer(),
                 loadOp: "load" as GPULoadOp,
                 storeOp: "store" as GPUStoreOp,
               }],
             });
-            passEncoder.setPipeline(pipeline);
+            renderPass.setPipeline(pipeline);
             // TODO: Make the vertex buffer optional, e.g. for static triangle or quad shaders
-            passEncoder.setVertexBuffer(0, mesh.vertexBuffer!);
-            if (mesh.isIndexed) passEncoder.setIndexBuffer(mesh.indexBuffer!, "uint32");
-            passEncoder.draw(mesh.vertices.length);
-            commandEncoder.insertDebugMarker(`Drawn entity: ${this.world.entityId(entity)}`);
-            passEncoder.end();
+            renderPass.setVertexBuffer(0, mesh.vertexBuffer!);
+            if (mesh.isIndexed) renderPass.setIndexBuffer(mesh.indexBuffer!, "uint32");
+            renderPass.draw(mesh.vertices.length);
+            commandEncoder.insertDebugMarker(`Drawn: Entity<${this.world.entityId(entity)}>`);
+            renderPass.end();
             commandBuffers.push(commandEncoder.finish());
           },
         ),
@@ -267,6 +279,50 @@ export default abstract class Game implements RealTimeApp {
         if (err) throw new ValidationError(err.message);
       });
     });
+  }
+
+  /** Capture the main window's viewport to a `GPUBuffer`. */
+  async captureFrame() {
+    assert(this.device !== null, "GPU device is lost.");
+    assert(this.mainWindow !== null, "App is not running.");
+    const size = this.mainWindow.size;
+    // See https://deno.land/std@0.224.0/webgpu/create_capture.ts?s=createCapture
+    const { texture, outputBuffer } = webgpu.createCapture(this.device!, size.width, size.height);
+    const renderAttachment: GPURenderPassColorAttachment = {
+      view: texture.createView(),
+      loadOp: "clear" as GPULoadOp,
+      storeOp: "store" as GPUStoreOp,
+      clearValue: this.clearColor,
+    };
+
+    // TODO: this.defaultRenderPass.queueTask(() => {});
+    await this.renderQueue.queueTask(() => {
+      const encoder = this.device!.createCommandEncoder();
+      encoder.beginRenderPass({ colorAttachments: [renderAttachment] }).end();
+      const { padded } = webgpu.getRowPadding(size.width);
+      encoder.copyTextureToBuffer(
+        { texture },
+        { buffer: outputBuffer, bytesPerRow: padded },
+        size,
+      );
+      return encoder.finish();
+    });
+
+    // `outputBuffer` contains the raw image data, can then be used to save as png or other formats.
+    return outputBuffer;
+  }
+
+  private readonly _renderQueue = {
+    /** Queue a GPU command buffer immediately. */
+    queueTask: (task: () => GPUCommandBuffer) => {
+      assert(this.device !== null, "GPU device is lost.");
+      this.device!.queue.submit([task()]);
+      return this.device!.queue.onSubmittedWorkDone();
+    },
+  };
+
+  get renderQueue() {
+    return this._renderQueue;
   }
 
   private resizeGpuSurface(window: DwmWindow, device: GPUDevice) {
