@@ -34,6 +34,7 @@ const libPath = path.normalize(
 console.log(`Loading Teraflop native platform support extensions...`);
 assert(fs.exists(libPath), `File not found: ${libName}`);
 console.debug(`Reading '${libPath}'`);
+// FIXME: Could not open library: dlopen(./lib/libteraflop-platform.dylib, 0x0005)
 const dylib = Deno.dlopen(libPath,
   // setIcon(char* filePath)
   { "setIcon": { parameters: ["pointer"], result: "bool" }} as const,
