@@ -3,7 +3,7 @@
     "lint": "deno check mod.ts",
     // Open chrome://inspect
     // "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
-    "debug": "deno run --unstable-ffi --allow-ffi --allow-read --allow-write --allow-env debugger/mod.ts",
+    "debug": "deno run --unstable-ffi --allow-ffi --allow-read --allow-write --allow-env --allow-net=github.com:443,objects.githubusercontent.com:443 debugger/mod.ts",
     "triangle": "deno run --unstable-webgpu --unstable-ffi --allow-ffi --allow-net=github.com,objects.githubusercontent.com --allow-read --allow-write --allow-env examples/triangle.ts",
     // TODO: https://github.com/deno-windowing/wpack?tab=readme-ov-file#readme
     "pack": "deno compile --location https://snow.llc/teraflop/triangle --unstable-webgpu --unstable-ffi --allow-ffi --allow-read --allow-write --allow-env --no-terminal examples/triangle.ts"

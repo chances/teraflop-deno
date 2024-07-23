@@ -3,6 +3,7 @@ import * as async from "@std/async";
 import { assert } from "@std/assert";
 import * as webview from "@webview/webview";
 import { SizeHint, Webview } from "@webview/webview";
+import * as Wm from "https://win32.deno.dev/0.4.1/UI.WindowsAndMessaging";
 
 if (Deno.build.os === "windows") webview.preload();
 
@@ -11,35 +12,13 @@ view.title = "Teraflop Debugger";
 const size = { width: 400, height: 225 };
 view.size = { ...size, hint: SizeHint.NONE };
 
-import * as Wm from "https://win32.deno.dev/0.4.1/UI.WindowsAndMessaging";
-const window = view.unsafeWindowHandle as Deno.PointerValue;
-assert(window !== null);
-const windowBounds = new Wm.RECTView(Wm.allocRECT());
-assert(Wm.GetWindowRect(window, windowBounds.buffer));
-Wm.MoveWindow(window, 12, 12, size.width, size.height, true);
-
-// TODO: Keep window anchored to the running Teraflop window
-// import { getPrimaryMonitor } from "https://deno.land/x/dwm@0.3.6/mod.ts";
-// const monitor = getPrimaryMonitor();
-// const MONITOR_DEFAULTTONULL =     0x00000000;
-// const MONITOR_DEFAULTTOPRIMARY =  0x00000001;
-// const MONITOR_DEFAULTTONEAREST =  0x00000002;
-// const libWinUser_dll = Deno.dlopen("user32.dll", {
-//   // See https://www.p-invoke.net/user32/monitorfromwindow
-//   MonitorFromWindow: {
-//     parameters: ["pointer", "u32"],
-//     result: "pointer",
-//   },
-//   // See https://www.p-invoke.net/user32/monitorfromrect
-//   MonitorFromRect: {
-//     parameters: ["buffer", "u32"],
-//     result: "pointer",
-//   },
-// });
-// const bounds = Wm.allocRECT({ top: 0, right: 24 + size.width, bottom: 24 + size.height, left: 0 });
-// console.debug(libWinUser_dll.symbols.MonitorFromRect(bounds.buffer, MONITOR_DEFAULTTONEAREST));
-// See also: MonitorFromRect function (winuser.h)
-// const monitor = libWinUser_dll.symbols.MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY);
+if (Deno.build.os === "windows") {
+  const window = view.unsafeWindowHandle as Deno.PointerValue;
+  assert(window !== null);
+  const windowBounds = new Wm.RECTView(Wm.allocRECT());
+  assert(Wm.GetWindowRect(window, windowBounds.buffer));
+  Wm.MoveWindow(window, 12, 12, size.width, size.height, true);
+}
 
 // FIXME: The tween is broken...
 await async.delay(0);
