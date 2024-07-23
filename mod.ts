@@ -143,7 +143,8 @@ export default abstract class Game implements RealTimeApp {
     });
 
     await this.initialize(this.world);
-    this.renderLoop.start();
+    await this.renderLoop.start().finished;
+    // FIXME: console.debug("Event loop finished.");
   }
 
   tick(tick: Tick) {
