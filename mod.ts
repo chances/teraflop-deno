@@ -7,17 +7,16 @@ export * from "./input/mod.ts";
 import { Entity, Filter, query, RunnableAsSystem, System, World } from "./ecs/mod.ts";
 export * from "./ecs/mod.ts";
 import * as graphics from "./graphics/mod.ts";
-import { Color, isResource, Material, Pipeline, Resource } from "./graphics/mod.ts";
 import { ComponentOf } from "./ecs/mod.ts";
-import { Mesh } from "./graphics/mod.ts";
+import { Color, isResource, Material, Mesh, Pipeline, Resource } from "./graphics/mod.ts";
 import { AnyConstructor } from "./utils.ts";
-export type Position = graphics.Position;
 export {
   Color,
   isResource,
   Material,
   Mesh,
   Pipeline,
+  type Position,
   Shader,
   ShaderStage,
   VertexPosColor,
