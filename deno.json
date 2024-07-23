@@ -1,15 +1,21 @@
 {
   "tasks": {
+    "build": "deno task build:platform",
+    "build:platform": "make -C platform",
     "lint": "deno check mod.ts",
     // Open chrome://inspect
     "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
-    "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts"
+    "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
+    "ffi": "deno run --unstable-ffi --allow-ffi --allow-read platform/ffi.ts"
   },
   "fmt": {
     "lineWidth": 120
   },
   "imports": {
     "@gnome/ffi": "jsr:@gnome/ffi@^0.0.0-beta-001",
+    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@std/fs": "jsr:@std/fs@^0.229.3",
+    "@std/path": "jsr:@std/path@^1.0.1",
     "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0"
   }
 }

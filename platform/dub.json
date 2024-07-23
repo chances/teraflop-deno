@@ -27,7 +27,7 @@
 		{
 			"name": "library-posix",
       "platforms": ["posix"],
-      "versions": ["Library"],
+      "versions": ["Library"]
 		},
     {
       "name": "library-windows",
