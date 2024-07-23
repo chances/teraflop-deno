@@ -1,11 +1,11 @@
 # Artifacts
 /lib/ffi.json
 /teraflop-platform
-teraflop-platform.so
-teraflop-platform.dylib
-teraflop-platform.dll
-teraflop-platform.a
-teraflop-platform.lib
+lib/*.so
+lib/*.dylib
+lib/*.dll
+lib/*.a
+lib/*.lib
 teraflop-platform-test-*
 
 # Dub
