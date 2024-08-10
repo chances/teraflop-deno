@@ -1,6 +1,7 @@
-import { assert } from "jsr:@std/assert";
-import * as async from "jsr:@std/async";
+import { assert } from "@std/assert";
+import * as async from "@std/async";
 import * as webgpu from "@std/webgpu";
+import { WebGPURecorder } from "webgpu_recorder";
 import RenderLoop, { RealTimeApp, Tick } from "@chances/render-loop";
 import { createWindow, DwmWindow, getPrimaryMonitor, pollEvents } from "https://deno.land/x/dwm@0.3.6/mod.ts";
 
@@ -28,6 +29,8 @@ export {
   VertexPosNormalColor,
 } from "./graphics/mod.ts";
 export * from "./utils.ts";
+
+// TODO: npm:webgpu-memory
 
 export default abstract class Game implements RealTimeApp {
   private _adapter: GPUAdapter | null = null;

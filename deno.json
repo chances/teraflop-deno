@@ -23,6 +23,7 @@
     "@std/path": "jsr:@std/path@^1.0.1",
     "@std/webgpu": "jsr:@std/webgpu@^0.224.5",
     "@webview/webview": "jsr:@webview/webview@^0.8.0",
-    "mobx": "npm:mobx@^6.13.1"
+    "mobx": "npm:mobx@^6.13.1",
+    "webgpu_recorder": "npm:webgpu_recorder@^1.2.1"
   }
 }

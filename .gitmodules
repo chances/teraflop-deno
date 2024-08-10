@@ -1,3 +1,0 @@
-[submodule "debugger/webgpu-debugger"]
-	path = debugger/webgpu-debugger
-	url = https://github.com/webgpu/webgpu-debugger.git
