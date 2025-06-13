@@ -1,4 +1,4 @@
-#!/usr/bin/env deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env
+#!/usr/bin/env deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-import=deno.land:443,jsr.io:443,glfw-binaries.deno.dev:443 --allow-read --allow-write --allow-env
 import { assert } from "jsr:@std/assert";
 import * as path from "https://deno.land/std@0.207.0/path/mod.ts";
 

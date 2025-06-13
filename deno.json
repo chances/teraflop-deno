@@ -2,13 +2,14 @@
   "tasks": {
     "lint": "deno check mod.ts",
     // Open chrome://inspect
-    "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts",
-    "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-read --allow-write --allow-env examples/triangle.ts"
+    "debug": "deno run --inspect-wait --unstable-ffi --unstable-webgpu --allow-ffi --allow-import=deno.land:443,jsr.io:443,glfw-binaries.deno.dev:443  --allow-read --allow-write --allow-env examples/triangle.ts",
+    "triangle": "deno run --unstable-ffi --unstable-webgpu --allow-ffi --allow-import=deno.land:443,jsr.io:443,glfw-binaries.deno.dev:443 --allow-read --allow-write --allow-env examples/triangle.ts"
   },
   "fmt": {
     "lineWidth": 120
   },
   "imports": {
+    "@gfx/dwm": "jsr:@gfx/dwm@^0.3.9",
     "@std/webgpu": "jsr:@std/webgpu@^0.224.5",
     "jsr:@chances/render-loop": "jsr:@chances/render-loop@^0.7.0"
   }

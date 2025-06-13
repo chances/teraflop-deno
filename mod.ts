@@ -2,7 +2,7 @@ import { assert } from "jsr:@std/assert";
 import * as async from "jsr:@std/async";
 import * as webgpu from "@std/webgpu";
 import RenderLoop, { RealTimeApp, Tick } from "jsr:@chances/render-loop";
-import { createWindow, DwmWindow, getPrimaryMonitor, pollEvents } from "https://deno.land/x/dwm@0.3.6/mod.ts";
+import { createWindow, DwmWindow, getPrimaryMonitor, pollEvents } from "@gfx/dwm";
 
 import { Input } from "./input/mod.ts";
 export * from "./input/mod.ts";
@@ -82,7 +82,8 @@ export default abstract class Game implements RealTimeApp {
   }
 
   private unhandledRejection = (e: PromiseRejectionEvent) => {
-    console.error(`${new Date().toUTCString()}: Unhandled Promise Rejection: ${e.reason}`);
+    const cause = e.reason instanceof Error ? e.reason.stack ?? e.reason : e.reason;
+    console.error(`${new Date().toUTCString()}: Unhandled Promise Rejection:\n${cause}`);
     e.preventDefault();
   };
 
@@ -98,10 +99,8 @@ export default abstract class Game implements RealTimeApp {
     console.debug("Retrieving adapter info...");
     // TODO: Unmask GPU device info
     // See https://github.com/denoland/deno/blob/5294885a5a411e6b2e9674ce9d8f951c9c011988/ext/webgpu/01_webgpu.js#L460
-    this._gpuInfo = await (await this.requestAdapter())?.requestAdapterInfo() ?? Promise.reject(
-      new Error(
-        "GPU adapter is not available.",
-      ),
+    this._gpuInfo = await (await this.requestAdapter())?.info ?? Promise.reject(
+      new Error("GPU adapter is not available."),
     ) as unknown as GPUAdapterInfo ?? null;
     this._adapter = await this.requestAdapter();
     if (!this._adapter) throw Error("Could not acquire a suitable WebGPU adapter.");
@@ -129,6 +128,7 @@ export default abstract class Game implements RealTimeApp {
     if (!this._device) throw Error("Could not acquire a suitable WebGPU device.");
     console.debug("Done.");
 
+    console.debug("Creating window...");
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
     this._surfaces.set(window.id, surface);
@@ -136,6 +136,7 @@ export default abstract class Game implements RealTimeApp {
     this._contexts.set(window.id, context);
     this._windows.push(window);
     this.resizeGpuSurface(window, this.device!);
+    console.debug("Done.");
 
     // Update swap WebGPU surfaces when their sizes change
     globalThis.addEventListener("framebuffersize", (ev) => {
@@ -325,7 +326,7 @@ export default abstract class Game implements RealTimeApp {
   private resizeGpuSurface(window: DwmWindow, device: GPUDevice) {
     const { width, height } = window.framebufferSize;
     const format = this.preferredSurfaceFormat;
-    this._contexts.get(window.id)?.configure({ device, format, width, height });
+    this._contexts.get(window.id)?.configure({ device, format });
   }
 }
 
