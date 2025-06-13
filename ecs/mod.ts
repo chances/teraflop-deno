@@ -6,25 +6,25 @@ let lastId = -1;
 export class World {
   readonly resources = Object.seal(new Resources());
   readonly entities = new Map<number, Component[]>();
-  readonly _tags = new Map<number, string[]>();
+  readonly #tags = new Map<number, string[]>();
 
   entityId(entity: Entity) {
     return hash(entity[1]);
   }
 
   tag(entity: Entity, label: string) {
-    if (!this._tags.has(entity[0])) this._tags.get(entity[0])?.push(label);
-    else this._tags.set(entity[0], [label]);
+    if (!this.#tags.has(entity[0])) this.#tags.get(entity[0])?.push(label);
+    else this.#tags.set(entity[0], [label]);
   }
 
   hasTag(entity: Entity, label: string) {
-    if (!this._tags.has(entity[0])) return false;
-    return this._tags.get(entity[0])?.includes(label);
+    if (!this.#tags.has(entity[0])) return false;
+    return this.#tags.get(entity[0])?.includes(label);
   }
 
   tags(entity: Entity) {
-    if (!this._tags.has(entity[0])) return [];
-    return Array.from(this._tags.get(entity[0])!);
+    if (!this.#tags.has(entity[0])) return [];
+    return Array.from(this.#tags.get(entity[0])!);
   }
 
   spawn(...components: Component[]) {
