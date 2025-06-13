@@ -31,6 +31,7 @@ export default abstract class Game implements RealTimeApp {
   private _gpuInfo: GPUAdapterInfo | null = null;
   private _device: GPUDevice | null = null;
   private _surfaces = new Map<string, Deno.UnsafeWindowSurface>();
+  private _surfaceIsDirty = new Map<string, boolean>();
   private _contexts = new Map<string, GPUCanvasContext>();
   private _pipelines = new Map<string, Pipeline>();
   private renderLoop = new RenderLoop(60, this);
@@ -132,6 +133,7 @@ export default abstract class Game implements RealTimeApp {
     const window = this._mainWindow = this.createWindow(this.name, 800, 450);
     const surface = window.windowSurface();
     this._surfaces.set(window.id, surface);
+    this._surfaceIsDirty.set(window.id, false);
     const context = surface.getContext("webgpu");
     this._contexts.set(window.id, context);
     this._windows.push(window);
@@ -141,8 +143,7 @@ export default abstract class Game implements RealTimeApp {
     // Update swap WebGPU surfaces when their sizes change
     globalThis.addEventListener("framebuffersize", (ev) => {
       this.resizeGpuSurface(ev.window, this.device!);
-      this.update();
-      if (this.active) this.render();
+      this._surfaceIsDirty.set(window.id, true);
     });
 
     await this.initialize(this.world);
@@ -160,6 +161,7 @@ export default abstract class Game implements RealTimeApp {
     const monitor = getPrimaryMonitor();
     window.setSizeLimits(width, height, monitor.workArea.width, monitor.workArea.height);
     this._inputMaps.set(window.id, new Input());
+
     return window;
   }
 
@@ -169,22 +171,26 @@ export default abstract class Game implements RealTimeApp {
     await Promise.all(uninitializedResources.map((resource) => resource.initialize(this._adapter!, this._device!)));
   }
 
-  private update() {
+  private async update() {
     // FIXME: There is a massive memory leak, i.e. ~1MB per second
     // See https://denosoar.deno.dev/docs to profile apps
     // TODO: Use marked sections to instrument game systems (https://deno.land/api@v1.42.3?s=Performance#method_measure_9)
 
     pollEvents();
     // TODO: Make this system opt-in?
-    Filter.by(isResource).entities(this.world)
-      .forEach((entity) => this.initializeResources(entity));
+    await Promise.all(Filter.by(isResource).entities(this.world)
+      .map((entity) => this.initializeResources(entity)));
 
     this._systems.forEach((system) => system.run());
   }
 
-  render() {
+  async render() {
     // Render the scene in each window
-    this._windows.forEach((window) => {
+    await Promise.all(this._windows.map(async (window) => {
+      // Skip this frame if the surface is dirty
+      if (this._surfaceIsDirty.get(window.id)! === true)
+        return queueMicrotask(() => this._surfaceIsDirty.set(window.id, false));
+
       const getFrameBuffer = () => this._contexts.get(window.id)!.getCurrentTexture().createView();
       const clearFrameBuffer = () => {
         const commandEncoder = this.device!.createCommandEncoder();
@@ -202,10 +208,20 @@ export default abstract class Game implements RealTimeApp {
       const commandBuffers: GPUCommandBuffer[] = [clearFrameBuffer()];
       this.device!.pushErrorScope("validation");
 
+      const commandEncoder = this.device!.createCommandEncoder();
+      const renderPass = commandEncoder.beginRenderPass({
+        label: `World<${window.id}>`,
+        colorAttachments: [{
+          view: getFrameBuffer(),
+          loadOp: "load" as GPULoadOp,
+          storeOp: "store" as GPUStoreOp,
+        }],
+      });
+
       // Render each world object given its Mesh and Material
       // TODO: Group entities by Material instances to reduce pipeline switching
       // TODO: Group entities by Mesh instances to perform indexed draws
-      Promise.all(
+      await Promise.all(
         query(new ComponentOf<Mesh>(Mesh), new ComponentOf<Material>(Material)).entities(this.world).map(
           async (entity) => {
             const mesh = entity[1].find((c) => c instanceof Mesh)! as Mesh;
@@ -239,24 +255,14 @@ export default abstract class Game implements RealTimeApp {
             }
             const pipeline = this._pipelines.get(pipelineKey)!.pipeline!;
 
-            // Encode this mesh into a render pass
-            const commandEncoder = this.device!.createCommandEncoder();
-            const renderPass = commandEncoder.beginRenderPass({
-              label: `Pipeline<${pipeline.label}>:Entity<${entity}>`,
-              colorAttachments: [{
-                view: getFrameBuffer(),
-                loadOp: "load" as GPULoadOp,
-                storeOp: "store" as GPUStoreOp,
-              }],
-            });
+            // Encode this mesh into the render pass
+            // console.debug(`Rendering ${pipeline.label}:Entity<${entity}>`);
             renderPass.setPipeline(pipeline);
             // TODO: Make the vertex buffer optional, e.g. for static triangle or quad shaders
             renderPass.setVertexBuffer(0, mesh.vertexBuffer!);
             if (mesh.isIndexed) renderPass.setIndexBuffer(mesh.indexBuffer!, "uint32");
             renderPass.draw(mesh.vertices.length);
-            commandEncoder.insertDebugMarker(`Drawn: Entity<${this.world.entityId(entity)}>`);
-            renderPass.end();
-            commandBuffers.push(commandEncoder.finish());
+            renderPass.insertDebugMarker(`Drawn: Entity<${this.world.entityId(entity)}>`);
           },
         ),
       ).catch((err: Error | unknown) => {
@@ -268,15 +274,19 @@ export default abstract class Game implements RealTimeApp {
         }
       });
 
+      renderPass.end();
+      commandBuffers.push(commandEncoder.finish());
+
       // Submit the aggregated command buffers
       this.device!.queue.submit(commandBuffers);
+      await this.device!.queue.onSubmittedWorkDone();
       // Swap frame buffers
       this._surfaces.get(window.id)!.present();
       // Handle validation errors
       this.device!.popErrorScope()?.then((err) => {
         if (err) throw new ValidationError(err.message);
       });
-    });
+    }));
   }
 
   /** Capture the main window's viewport to a `GPUBuffer`. */
@@ -327,6 +337,7 @@ export default abstract class Game implements RealTimeApp {
     const { width, height } = window.framebufferSize;
     const format = this.preferredSurfaceFormat;
     this._contexts.get(window.id)?.configure({ device, format });
+    this._surfaces.get(window.id)!.resize(width, height);
   }
 }
 
@@ -352,7 +363,7 @@ export class ValidationError extends Error {
     }
   }
 
-  /** Whether Deno will abort when GPU any validation error is instantiated. */
+  /** Whether Deno will abort when any validation error is instantiated. */
   static get abortOnInstantiation() {
     // deno-lint-ignore no-explicit-any
     return (ValidationError as any)[Symbol.for("abortOnValidationError")] ?? false;
